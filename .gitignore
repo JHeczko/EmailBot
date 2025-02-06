@@ -5,3 +5,5 @@
 *.pkg
 *.spec
 *.pyz
+*.xlsx#
+*.zip
