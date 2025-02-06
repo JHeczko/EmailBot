@@ -2,7 +2,7 @@ from openpyxl import Workbook,load_workbook
 from openpyxl.styles import Font, Alignment, PatternFill
 
 
-def edit_excel(workbook):
+def edit_excel(workbook,i_mama, i_mail, i_r1, i_r2, i_r3):
     newWorkBook = Workbook()
     newSheet = newWorkBook.active
     sheet = workbook.active  # Pobieramy aktywny arkusz
@@ -17,16 +17,14 @@ def edit_excel(workbook):
 
     try:
         # =-=-=-=-=-=-=-=-=SORTING DATA FROM OLD WORKBOOK=-=-=-=-=-=-=-=-=
-        for row in sheet.iter_rows(min_row=2, min_col=3, max_col=11, values_only=True):
-            #dzieckoNazwisko = row[0].split()[1] if row[0] is not None else 'nieznane dziecko'
-            mama = row[2] if row[2] is not None else 'nieznany_rodzic'
-            #tataNazwisko = row[3] if row[3] is not None else 'nieznany rodzic'
-            mail = row[4] if row[4] is not None else ''
-            moneyR1 = row[6] if row[6] is not None else 0
-            moneyR2 = row[7] if row[7] is not None else 0
-            moneyR3 = row[8] if row[8] is not None else 0
+        for row in sheet.iter_rows(min_row=2,min_col=0, values_only=True):
+            mama = row[i_mama] if row[i_mama] is not None else 'nieznany_rodzic'
+            mail = row[i_mail] if row[i_mail] is not None else ''
+            moneyR1 = row[i_r1] if row[i_r1] is not None else 0
+            moneyR2 = row[i_r2] if row[i_r2] is not None else 0
+            moneyR3 = row[i_r3] if row[i_r3] is not None else 0
             moneyAll = moneyR1 + moneyR2 + moneyR3
-
+            print(mama)
             if mama in hashImieR1:
                 hashImieR1[mama] += moneyR1
             else:
@@ -77,11 +75,16 @@ def edit_excel(workbook):
         # ============Filling data============
         row = 2
         for mama in hashImieMail.keys():
-            nazwiskoMama = mama.split()[1:]
+            nazwiskoMama = mama.split()
+            nazwiskoMama = nazwiskoMama[1:] if len(nazwiskoMama) != 1 else nazwiskoMama[0] + " nieznane_nazwisko"
             nazwiskoMama = ''.join(nazwiskoMama)
+
+            mailMama = hashImieMail[mama].split(';')
+            mailMama = '|'.join(mailMama)
+
             newSheet.cell(row=row, column=1, value="Szanowna Pani")
             newSheet.cell(row=row, column=2, value=nazwiskoMama if mama!="nieznany_rodzic" else "Nie znaleziono mamy!")
-            newSheet.cell(row=row, column=3, value=hashImieMail[mama]if mama!="nieznany_rodzic" else "Uzupelnij dane o imie oraz nazwisko mamy")
+            newSheet.cell(row=row, column=3, value= mailMama if mama!="nieznany_rodzic" else "Uzupelnij dane o imie oraz nazwisko mamy")
             newSheet.cell(row=row, column=4, value=hashImieIlosc[mama])
             newSheet.cell(row=row, column=5, value=hashImieR1[mama]).number_format = '#,##0.00 "zł"'
             newSheet.cell(row=row, column=6, value=hashImieR2[mama]).number_format = '#,##0.00 "zł"'
@@ -121,5 +124,5 @@ def edit_excel(workbook):
 
 if __name__ == "__main__":
     workbook = load_workbook("./tests/test.xlsx")
-    edited_workbook = edit_excel(workbook)
+    edited_workbook = edit_excel(workbook, i_mama=4, i_mail=6, i_r1=8, i_r2=9, i_r3=10)
     edited_workbook.save("./testy_parsing.xlsx")
