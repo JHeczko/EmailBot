@@ -19,7 +19,7 @@ def edit_excel(workbook):
         # =-=-=-=-=-=-=-=-=SORTING DATA FROM OLD WORKBOOK=-=-=-=-=-=-=-=-=
         for row in sheet.iter_rows(min_row=2, min_col=3, max_col=11, values_only=True):
             #dzieckoNazwisko = row[0].split()[1] if row[0] is not None else 'nieznane dziecko'
-            mamaNazwisko = row[2] if row[2] is not None else 'nieznany_rodzic'
+            mama = row[2] if row[2] is not None else 'nieznany_rodzic'
             #tataNazwisko = row[3] if row[3] is not None else 'nieznany rodzic'
             mail = row[4] if row[4] is not None else ''
             moneyR1 = row[6] if row[6] is not None else 0
@@ -27,32 +27,32 @@ def edit_excel(workbook):
             moneyR3 = row[8] if row[8] is not None else 0
             moneyAll = moneyR1 + moneyR2 + moneyR3
 
-            if mamaNazwisko in hashImieR1:
-                hashImieR1[mamaNazwisko] += moneyR1
+            if mama in hashImieR1:
+                hashImieR1[mama] += moneyR1
             else:
-                hashImieR1[mamaNazwisko] = moneyR1
+                hashImieR1[mama] = moneyR1
 
-            if mamaNazwisko in hashImieR2:
-                hashImieR2[mamaNazwisko] += moneyR2
+            if mama in hashImieR2:
+                hashImieR2[mama] += moneyR2
             else:
-                hashImieR2[mamaNazwisko] = moneyR2
+                hashImieR2[mama] = moneyR2
 
-            if mamaNazwisko in hashImieR3:
-                hashImieR3[mamaNazwisko] += moneyR3
+            if mama in hashImieR3:
+                hashImieR3[mama] += moneyR3
             else:
-                hashImieR3[mamaNazwisko] = moneyR3
+                hashImieR3[mama] = moneyR3
 
-            if mamaNazwisko in hashImieALL:
-                hashImieALL[mamaNazwisko] += moneyAll
+            if mama in hashImieALL:
+                hashImieALL[mama] += moneyAll
             else:
-                hashImieALL[mamaNazwisko] = moneyAll
+                hashImieALL[mama] = moneyAll
 
-            if mamaNazwisko in hashImieIlosc:
-                hashImieIlosc[mamaNazwisko] += 1
+            if mama in hashImieIlosc:
+                hashImieIlosc[mama] += 1
             else:
-                hashImieIlosc[mamaNazwisko] = 1
+                hashImieIlosc[mama] = 1
 
-            hashImieMail[mamaNazwisko] = mail
+            hashImieMail[mama] = mail
     except Exception as e:
         print(f"Data sep loop error: {e}")
 
@@ -76,27 +76,29 @@ def edit_excel(workbook):
 
         # ============Filling data============
         row = 2
-        for mamaNazwisko in hashImieMail.keys():
+        for mama in hashImieMail.keys():
+            nazwiskoMama = mama.split()[1:]
+            nazwiskoMama = ''.join(nazwiskoMama)
             newSheet.cell(row=row, column=1, value="Szanowna Pani")
-            newSheet.cell(row=row, column=2, value=mamaNazwisko.split()[1] if mamaNazwisko!="nieznany_rodzic" else "Nie znaleziono mamy!")
-            newSheet.cell(row=row, column=3, value=hashImieMail[mamaNazwisko]if mamaNazwisko!="nieznany_rodzic" else "Uzupelnij dane o imie oraz nazwisko mamy")
-            newSheet.cell(row=row, column=4, value=hashImieIlosc[mamaNazwisko])
-            newSheet.cell(row=row, column=5, value=hashImieR1[mamaNazwisko]).number_format = '#,##0.00 "zł"'
-            newSheet.cell(row=row, column=6, value=hashImieR2[mamaNazwisko]).number_format = '#,##0.00 "zł"'
-            newSheet.cell(row=row, column=7, value=hashImieR3[mamaNazwisko]).number_format = '#,##0.00 "zł"'
-            newSheet.cell(row=row, column=8, value=hashImieALL[mamaNazwisko]).number_format = '#,##0.00 "zł"'
+            newSheet.cell(row=row, column=2, value=nazwiskoMama if mama!="nieznany_rodzic" else "Nie znaleziono mamy!")
+            newSheet.cell(row=row, column=3, value=hashImieMail[mama]if mama!="nieznany_rodzic" else "Uzupelnij dane o imie oraz nazwisko mamy")
+            newSheet.cell(row=row, column=4, value=hashImieIlosc[mama])
+            newSheet.cell(row=row, column=5, value=hashImieR1[mama]).number_format = '#,##0.00 "zł"'
+            newSheet.cell(row=row, column=6, value=hashImieR2[mama]).number_format = '#,##0.00 "zł"'
+            newSheet.cell(row=row, column=7, value=hashImieR3[mama]).number_format = '#,##0.00 "zł"'
+            newSheet.cell(row=row, column=8, value=hashImieALL[mama]).number_format = '#,##0.00 "zł"'
             row += 1
 
         # ============Styling============
         row = 2
-        for mamaNazwisko in hashImieMail.keys():
+        for mama in hashImieMail.keys():
             for i in range(1,9):
                 if row % 2 != 0:
                     newSheet.cell(row=row, column=i).fill = light_gray_fill
             row += 1
 
         row = 2
-        for mamaNazwisko in hashImieMail.keys():
+        for mama in hashImieMail.keys():
             for i in range(1,9):
                 newSheet.cell(row=row, column=i).alignment = cell_alignment
             row += 1
