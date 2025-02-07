@@ -1,12 +1,11 @@
 import os.path
 
 import openpyxl
-from PyQt5.QtWidgets import QLabel, QHBoxLayout
 from openpyxl import load_workbook
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon, QPixmap, QPalette, QAction
 from PySide6.QtWidgets import QWidget, QApplication, QMainWindow, QFileDialog, QToolBar, QMessageBox, QStackedLayout, \
-    QVBoxLayout
+    QVBoxLayout, QHBoxLayout, QLabel
 
 
 class Window(QMainWindow):
