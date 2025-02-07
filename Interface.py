@@ -40,16 +40,35 @@ class Window(QMainWindow):
         file_menu.addAction(button_open)
         file_menu.addAction(button_save)
 
-        # Create the main widget (central widget)
-        main_widget = QWidget()
-        layout = QHBoxLayout()
-        layout.addWidget(QLabel("Coś"))
+        # create the main widget with stack(central widget)
+        self.main_widget = QWidget()
+        self.main_stack = QStackedLayout()
+        self.main_stack.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        main_widget.setLayout(layout)
-        self.setCentralWidget(main_widget)
+
+        self.main_widget.setLayout(self.main_stack)
+        self.setCentralWidget(self.main_widget)
+
+        # =-==-=-=-=-=-= FIRST SCENE AKA NOTHING BOX =-==-=-=-=-=-=
+        window1= QWidget()
+        window1_layout = QHBoxLayout()
+        window1_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        window1.setLayout(window1_layout)
+        window1_layout.addWidget(QLabel("TEST"))
+
+        self.main_stack.addWidget(window1)
+
+        # self.stack = QStackedLayout()
+        # windows_stack = QWidget(self)
+        # windows_stack.setLayout(self.stack)
+        # self.main_layout.addWidget(windows_stack)
+
+
 
     def file_open(self):
         path = QFileDialog().getOpenFileName(QWidget(self), 'Open file', os.getcwd(), "Excel Files (*.xlsx)")[0]
+        if path == '':
+            return
         if path != '' and path is not None:
             try:
                 self.workbook = load_workbook(path)
