@@ -1,5 +1,6 @@
 import os.path
 
+import openpyxl
 from openpyxl import load_workbook
 from PySide6.QtCore import Qt, QSize
 from PySide6.QtGui import QIcon, QPixmap, QPalette, QAction
@@ -10,12 +11,12 @@ class Window(QMainWindow):
     def __init__(self):
         # init of local variables
         super().__init__()
-        self.workbook = None
+        self.workbook : openpyxl.Workbook = None
 
         # setting up window sizes and icons
         self.setWindowTitle('Przetwarzanie excela')
         self.setMinimumSize(800, 600)
-        bitmap = QPixmap(os.path.join(os.getcwd() + "logo.ico"))
+        bitmap = QPixmap(os.path.join(os.getcwd() + "./public/logo.ico"))
         icon = QIcon(bitmap)
         self.setWindowIcon(icon)
 
@@ -54,9 +55,17 @@ class Window(QMainWindow):
 
 
     def file_save(self):
+        if self.workbook is None:
+            dlg = QMessageBox.critical(self, "Nie wczytano notatnika", "Nie wczytano notatnika do zapisu")
+            return
+
         path = QFileDialog().getSaveFileName(QWidget(self), 'Save file', os.getcwd(), "Excel Files (*.xlsx)")
         print(path)
-
+        if path != '' and path is not None:
+            print(path)
+            self.workbook.save(path)
+        else:
+            dlg = QMessageBox.critical(self,"Nie wybrano ścieżki do zapisu", "Nieprawnie wybrana ścieżka zapisu")
 if __name__ == '__main__':
     app = QApplication([])
     window = Window()
