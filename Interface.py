@@ -5,7 +5,7 @@ from openpyxl import load_workbook
 from PySide6.QtCore import Qt, QSize, QSysInfo
 from PySide6.QtGui import QIcon, QPixmap, QPalette, QAction, QGuiApplication
 from PySide6.QtWidgets import QWidget, QApplication, QMainWindow, QFileDialog, QToolBar, QMessageBox, QStackedLayout, \
-    QVBoxLayout, QHBoxLayout, QLabel, QComboBox
+    QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton
 
 
 class Window(QMainWindow):
@@ -32,7 +32,7 @@ class Window(QMainWindow):
         button_save = QAction("Zapisz plik", self)
         button_save.triggered.connect(self.file_save)
         button_help = QAction("Pomoc", self)
-        button_help.triggered.connect(None)
+        button_help.triggered.connect(self.help_popup)
 
         # adding toolbar for the app only for macusers
         if QSysInfo == 'macos':
@@ -75,12 +75,14 @@ class Window(QMainWindow):
         self.window2 = QWidget()
         window2_layout = QVBoxLayout()
         window2_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # adding text with file name
         window2_layout.addWidget(self.file_name)
 
-        window2_layout_row = QHBoxLayout()
-        window2_layout_row.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        # making sequence of comboboxes
+        window2_layout_combobox = QHBoxLayout()
+        window2_layout_combobox.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        window2_layout.addLayout(window2_layout_row)
+        window2_layout.addLayout(window2_layout_combobox)
         self.window2.setLayout(window2_layout)
 
         for name in self.info_labels:
@@ -96,9 +98,25 @@ class Window(QMainWindow):
             temp_lay.addWidget(combobox_temp)
             self.comboboxes.append(combobox_temp)
 
-            window2_layout_row.addLayout(temp_lay)
+            window2_layout_combobox.addLayout(temp_lay)
+
+        # buttons for navigation
+        window2_layout_button = QHBoxLayout()
+        window2_layout_button.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        button_next = QPushButton()
+        button_cancel = QPushButton()
+        button_cancel.setText("Anuluj")
+        button_next.setText("Przetwórz")
+
+        button_cancel.pressed.connect(self.back_button)
+        button_next.pressed.connect(self.next_button)
 
 
+        window2_layout_button.addWidget(button_next)
+        window2_layout_button.addWidget(button_cancel)
+        window2_layout.addLayout(window2_layout_button)
+
+        # =-==-=-=-=-=-= ADDING EVERYTHING TOGETHER =-==-=-=-=-=-=
         self.main_stack.addWidget(self.window1)
         self.main_stack.addWidget(self.window2)
 
@@ -132,16 +150,22 @@ class Window(QMainWindow):
             return
 
         path = QFileDialog().getSaveFileName(QWidget(self), 'Save file', os.getcwd(), "Excel Files (*.xlsx)")[0]
-        print(path)
         if path != '' and path is not None:
             self.workbook.save(path)
         else:
             return
 
+    def help_popup(self): pass
 
+    def back_button(self):
+        self.main_stack.setCurrentWidget(self.window1)
+        self.workbook.close()
+        self.workbook = None
+        self.labels = []
+
+    def next_button(self): pass
 if __name__ == '__main__':
     app = QApplication([])
     window = Window()
     window.show()
-    print(QSysInfo.productType())
     app.exec()
