@@ -24,7 +24,6 @@ def edit_excel(workbook,i_mama, i_mail, i_r1, i_r2, i_r3):
             moneyR2 = row[i_r2] if row[i_r2] is not None else 0
             moneyR3 = row[i_r3] if row[i_r3] is not None else 0
             moneyAll = moneyR1 + moneyR2 + moneyR3
-            print(mama)
             if mama in hashImieR1:
                 hashImieR1[mama] += moneyR1
             else:
@@ -52,7 +51,7 @@ def edit_excel(workbook,i_mama, i_mail, i_r1, i_r2, i_r3):
 
             hashImieMail[mama] = mail
     except Exception as e:
-        print(f"Data sep loop error: {e}")
+        raise ValueError("Zle sformatowane dane/puste wiersze")
 
     try:
         # =-=-=-=-=-=-=-=-=STYLING AND FILLING NEW WORKBOOK=-=-=-=-=-=-=-=-=
@@ -119,7 +118,7 @@ def edit_excel(workbook,i_mama, i_mail, i_r1, i_r2, i_r3):
             adjusted_width = (max_length + 10)  # Add some extra space
             newSheet.column_dimensions[column].width = adjusted_width
     except Exception as e:
-        print(f"Styling loop error: {e}")
+        raise ValueError("Zle sformatowane dane, prawdopodobnie spacja w środku imienia")
     return newWorkBook
 
 if __name__ == "__main__":

@@ -6,13 +6,14 @@ from PySide6.QtCore import Qt, QSize, QSysInfo
 from PySide6.QtGui import QIcon, QPixmap, QPalette, QAction, QGuiApplication
 from PySide6.QtWidgets import QWidget, QApplication, QMainWindow, QFileDialog, QToolBar, QMessageBox, QStackedLayout, \
     QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton
-
+from Parsing import edit_excel
 
 class Window(QMainWindow):
     def __init__(self):
         # init of local variables
         super().__init__()
         self.workbook : openpyxl.Workbook = None
+        self.workbook_edited : openpyxl.Workbook= None
         self.labels = []
         self.info_labels = ["Imie i Nazwisko Mamy", "Mail", "3-30 dni", "31-60 dni", "61-365 dni"]
         self.comboboxes = []
@@ -35,7 +36,7 @@ class Window(QMainWindow):
         button_help.triggered.connect(self.help_popup)
 
         # adding toolbar for the app only for macusers
-        if QSysInfo == 'macos':
+        if QSysInfo.productType() == 'macos':
             toolbar = QToolBar(self)
             toolbar.addAction(button_open)
             toolbar.addSeparator()
@@ -63,6 +64,7 @@ class Window(QMainWindow):
         self.window1= QWidget()
         window1_layout = QVBoxLayout()
         window1_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        window1_layout.setSpacing(30)
         self.window1.setLayout(window1_layout)
 
         enter = QLabel('Witamy w przetwarzaniu excela')
@@ -116,9 +118,30 @@ class Window(QMainWindow):
         window2_layout_button.addWidget(button_cancel)
         window2_layout.addLayout(window2_layout_button)
 
+        # =-==-=-=-=-=-= THIRD SCENE AKA ENDING/SAVING FILE=-==-=-=-=-=-=
+        self.window3 = QWidget()
+        window3_layout = QVBoxLayout()
+        window3_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        window3_layout.setSpacing(20)
+        self.window3.setLayout(window3_layout)
+
+        w3_text = QLabel("Wszystko poszło ok")
+        w3_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        w3_text2 = QLabel('"Plik teraz należy zapisać trzeba przejść do menu "Plik" -> "Zapisz plik", następnie wybieramy lokalizację zapisu i nazwę pliku')
+        w3_text2.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        window3_layout.addWidget(w3_text)
+        window3_layout.addWidget(w3_text2)
+
+        w3_button = QPushButton()
+        w3_button.setText("Anuluj")
+        w3_button.pressed.connect(self.back_button)
+        window3_layout.addWidget(w3_button)
+
         # =-==-=-=-=-=-= ADDING EVERYTHING TOGETHER =-==-=-=-=-=-=
         self.main_stack.addWidget(self.window1)
         self.main_stack.addWidget(self.window2)
+        self.main_stack.addWidget(self.window3)
 
         self.main_stack.setCurrentWidget(self.window1)
 
@@ -129,7 +152,6 @@ class Window(QMainWindow):
         if path != '' and path is not None:
             try:
                 self.workbook = load_workbook(path)
-                QMessageBox.information(self,"Wszystko ok", f"Załadowano plik excela")
                 self.labels =  [x.value for x in self.workbook.active[1]]
                 self.file_name.setText(f"Praca na pliku: \"{os.path.basename(path)}\"")
 
@@ -145,13 +167,15 @@ class Window(QMainWindow):
 
 
     def file_save(self):
-        if self.workbook is None:
-            QMessageBox.critical(self, "Nie wczytano notatnika", "Nie wczytano notatnika do zapisu")
+        if self.workbook_edited is None:
+            QMessageBox.critical(self, "Nie przetworzono arkusza", "Arkusz jest nieprzetworzony, nie mozna zapisac")
             return
 
         path = QFileDialog().getSaveFileName(QWidget(self), 'Save file', os.getcwd(), "Excel Files (*.xlsx)")[0]
         if path != '' and path is not None:
-            self.workbook.save(path)
+            self.workbook_edited.save(path)
+            self.back_button()
+            QMessageBox.information(self,"Wszystko ok", f"Zapisano poprawnie plik pod nazwą {os.path.basename(path)}")
         else:
             return
 
@@ -159,11 +183,31 @@ class Window(QMainWindow):
 
     def back_button(self):
         self.main_stack.setCurrentWidget(self.window1)
-        self.workbook.close()
+        try:
+            self.workbook.close()
+        except Exception as e: pass
+
+        try:
+            self.workbook_edited.close()
+        except Exception as e: pass
         self.workbook = None
+        self.workbook_edited = None
         self.labels = []
 
-    def next_button(self): pass
+    def next_button(self):
+        try:
+            indexes = []
+            for box in self.comboboxes:
+                indexes.append(box.currentIndex())
+            self.workbook_edited = edit_excel(self.workbook, *indexes)
+            self.main_stack.setCurrentWidget(self.window3)
+        except Exception as e:
+            self.back_button()
+            QMessageBox.critical(self, "Błąd przetwarzania", "Coś nie tak z przetwarzaniem. Upewnij się, że kolumny są poprawnie wybrane oraz dane są poprawnie przygotowane")
+
+
+
+
 if __name__ == '__main__':
     app = QApplication([])
     window = Window()
