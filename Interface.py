@@ -179,7 +179,15 @@ class Window(QMainWindow):
         else:
             return
 
-    def help_popup(self): pass
+    def help_popup(self):
+        window_help = QWidget()
+        window_help.setWindowTitle("Pomoc")
+        layout_help = QHBoxLayout()
+        layout_help.addWidget(QLabel("cos"))
+        window_help.setLayout(layout_help)
+
+        window_help.layout().setAlignment(Qt.AlignmentFlag.AlignCenter)
+        window_help.show()
 
     def back_button(self):
         self.main_stack.setCurrentWidget(self.window1)
