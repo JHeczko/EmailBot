@@ -3,22 +3,23 @@ import os.path
 import openpyxl
 from openpyxl import load_workbook
 from PySide6.QtCore import Qt, QSize, QSysInfo
-from PySide6.QtGui import QIcon, QPixmap, QPalette, QAction, QGuiApplication
+from PySide6.QtGui import QIcon, QPixmap, QPalette, QAction, QGuiApplication, QColor
 from PySide6.QtWidgets import QWidget, QApplication, QMainWindow, QFileDialog, QToolBar, QMessageBox, QStackedLayout, \
     QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton
 from Parsing import edit_excel
 
 class Window(QMainWindow):
     def __init__(self):
-        # init of local variables
         super().__init__()
+
+        # initailizing all local variables needed for workflow of program
         self.workbook : openpyxl.Workbook = None
         self.workbook_edited : openpyxl.Workbook= None
         self.labels = []
         self.info_labels = ["Imie i Nazwisko Mamy", "Mail", "3-30 dni", "31-60 dni", "61-365 dni"]
         self.comboboxes = []
         self.file_name = QLabel('')
-        self.file_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.window_help = None
 
         # setting up window sizes and icons
         self.setWindowTitle('Przetwarzanie excela')
@@ -26,6 +27,7 @@ class Window(QMainWindow):
         bitmap = QPixmap(os.path.join(os.getcwd() + "./public/logo.ico"))
         icon = QIcon(bitmap)
         self.setWindowIcon(icon)
+        self.file_name.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # setting up buttons for menu
         button_open = QAction('Otwórz plik', self)
@@ -44,6 +46,8 @@ class Window(QMainWindow):
             toolbar.addSeparator()
             toolbar.addAction(button_help)
             self.addToolBar(toolbar)
+        elif QSysInfo.productType() == 'windows':
+            self.apply_dark_theme()
 
         # adding menu for the app
         menu = self.menuBar()
@@ -180,14 +184,14 @@ class Window(QMainWindow):
             return
 
     def help_popup(self):
-        window_help = QWidget()
-        window_help.setWindowTitle("Pomoc")
+        self.window_help = QWidget()
+        self.window_help.setWindowTitle("Pomoc")
         layout_help = QHBoxLayout()
         layout_help.addWidget(QLabel("cos"))
-        window_help.setLayout(layout_help)
+        self.window_help.setLayout(layout_help)
 
-        window_help.layout().setAlignment(Qt.AlignmentFlag.AlignCenter)
-        window_help.show()
+        self.window_help.layout().setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.window_help.show()
 
     def back_button(self):
         self.main_stack.setCurrentWidget(self.window1)
@@ -213,7 +217,31 @@ class Window(QMainWindow):
             self.back_button()
             QMessageBox.critical(self, "Błąd przetwarzania", "Coś nie tak z przetwarzaniem. Upewnij się, że kolumny są poprawnie wybrane oraz dane są poprawnie przygotowane")
 
-
+    def apply_dark_theme(self):
+        self.setStyleSheet("""
+                    QMainWindow {
+                        background-color: #121212;
+                    }
+                    QWidget {
+                        background-color: #121212;
+                        color: #FFFFFF;
+                    }
+                    QComboBox {
+                        background-color: #333333;
+                        color: white;
+                        border: 1px solid #555;
+                        padding: 5px;
+                    }
+                    QComboBox::drop-down {
+                        border: none;
+                        background: #444;
+                    }
+                    QComboBox QAbstractItemView {
+                        background-color: #222;
+                        color: white;
+                        selection-background-color: #555;
+                    }
+                """)
 
 
 if __name__ == '__main__':
