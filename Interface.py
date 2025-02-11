@@ -1,3 +1,4 @@
+import ctypes
 import os.path
 
 import openpyxl
@@ -37,7 +38,7 @@ class Window(QMainWindow):
         button_help = QAction("Pomoc", self)
         button_help.triggered.connect(self.help_popup)
 
-        # adding toolbar for the app only for macusers
+        # =-=-=-=-=--= PLATFORM CUSTOMIZATION =-=-=-=-=--=
         if QSysInfo.productType() == 'macos':
             toolbar = QToolBar(self)
             toolbar.addAction(button_open)
@@ -48,6 +49,7 @@ class Window(QMainWindow):
             self.addToolBar(toolbar)
         elif QSysInfo.productType() == 'windows':
             self.apply_dark_theme()
+
 
         # adding menu for the app
         menu = self.menuBar()
@@ -147,7 +149,7 @@ class Window(QMainWindow):
         self.main_stack.addWidget(self.window2)
         self.main_stack.addWidget(self.window3)
 
-        self.main_stack.setCurrentWidget(self.window1)
+        self.main_stack.setCurrentWidget(self.window2)
 
     def file_open(self):
         path = QFileDialog().getOpenFileName(QWidget(self), 'Open file', os.getcwd(), "Excel Files (*.xlsx)")[0]
@@ -217,15 +219,31 @@ class Window(QMainWindow):
             self.back_button()
             QMessageBox.critical(self, "Błąd przetwarzania", "Coś nie tak z przetwarzaniem. Upewnij się, że kolumny są poprawnie wybrane oraz dane są poprawnie przygotowane")
 
-    def apply_dark_theme(self):
+    def apply_dark_theme(self,dark_mode = True):
         self.setStyleSheet("""
                     QMainWindow {
-                        background-color: #121212;
+                        background-color: #242424;
                     }
                     QWidget {
-                        background-color: #121212;
+                        background-color: #242424;
                         color: #FFFFFF;
                     }
+                    
+                    QPushButton{
+                        background-color: #212121;
+                        color: #FFFFFF;
+                        padding: 3px;
+                        border: 2px solid #404040;
+                        float:left;
+                    }
+                    QPushButton:hover{
+                        background-color: #aba7ab;
+                        color: #212121;
+                        padding: 3px;
+                        border: 2px solid #919191;
+                        float:left;
+                    }
+                    
                     QComboBox {
                         background-color: #333333;
                         color: white;
@@ -235,14 +253,68 @@ class Window(QMainWindow):
                     QComboBox::drop-down {
                         border: none;
                         background: #444;
+                        color: white;
                     }
                     QComboBox QAbstractItemView {
-                        background-color: #222;
+                        background-color: #333333;
                         color: white;
-                        selection-background-color: #555;
+                        selection-background-color: #555555;
                     }
+                    
+                    QMenuBar{
+                        background-color: #222;
+                    }
+                    QMenuBar::item {
+                        padding: 3px 15px;
+                        width: 100%;
+                        float:left
+                    }
+                    QMenuBar::item:selected { /* when selected using mouse or keyboard */
+                        background: #a8a8a8;
+                        color: black;
+                    }
+                    
+                   QMenu {
+                       background-color: #333333;
+                       border: 1px solid #555555;
+                   }
+                   QMenu::item {
+                       padding: 6px 20px;
+                       color: white;
+                   }
+                   QMenu::item:selected {
+                       background-color: #555555;
+                   }
                 """)
 
+        try:
+            hwnd = self.winId()  # Get window handle
+
+            # Define the attributes for DWM (Desktop Window Manager)
+            DWMWA_USE_IMMERSIVE_DARK_MODE = 20  # Dark mode title bar
+            DWMWA_CAPTION_COLOR = 35  # Title bar color
+            DWMWA_TEXT_COLOR = 36  # Title text color
+
+            # Convert dark mode flag to ctypes
+            dark_mode_flag = ctypes.c_int(1 if dark_mode else 0)
+
+            # Set dark/light mode
+            ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ctypes.byref(dark_mode_flag), ctypes.sizeof(dark_mode_flag)
+            )
+
+            # Set custom title bar color (only works when `DWMWA_USE_IMMERSIVE_DARK_MODE` is enabled)
+            title_bar_color = 0x4d4d4d if dark_mode else 0xFFFFFF  # Dark or white
+            ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                hwnd, DWMWA_CAPTION_COLOR, ctypes.byref(ctypes.c_int(title_bar_color)), 4
+            )
+
+            # Set title text color (optional)
+            text_color = 0xFFFFFF if dark_mode else 0x000000
+            ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                hwnd, DWMWA_TEXT_COLOR, ctypes.byref(ctypes.c_int(text_color)), 4)
+        except Exception as e:
+            print("Something wrong with windows native color changing for toolbars")
 
 if __name__ == '__main__':
     app = QApplication([])
