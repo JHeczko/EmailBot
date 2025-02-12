@@ -6,10 +6,81 @@ from openpyxl import load_workbook
 from PySide6.QtCore import Qt, QSize, QSysInfo
 from PySide6.QtGui import QIcon, QPixmap, QPalette, QAction, QGuiApplication, QColor
 from PySide6.QtWidgets import QWidget, QApplication, QMainWindow, QFileDialog, QToolBar, QMessageBox, QStackedLayout, \
-    QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton
+    QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton, QSizePolicy, QToolButton
 from Parsing import edit_excel
 
-class Window(QMainWindow):
+class HelpWindow(QWidget):
+    def __init__(self):
+        super().__init__()
+
+        # setting up for new window
+        self.setWindowTitle("Pomoc")
+        self.setMinimumSize(500,300)
+        self.setMaximumSize(700,500)
+
+        # main layout
+        main_layout = QVBoxLayout()
+        main_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # button layout and text stack layout
+        self.main_stack = QStackedLayout()
+        buttons_layout = QHBoxLayout()
+        buttons_layout.setSpacing(10)
+        buttons_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        # configuring help text
+        help_window1 = QWidget()
+        help_layout1 = QVBoxLayout()
+        help_layout1.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        help_layout1.setSpacing(30)
+        help_window1.setLayout(help_layout1)
+
+        help_imie_h1 = QLabel("<h1>Format Imienia i Nazwiska</h1>")
+        help_imie_tresc = QLabel('Imie i nazwisko mamy w bazowej tabeli powinno być sformatowane w taki sposób, aby stanowiło dwa człony, czyli mamy imię na przykład "Katarzyna" i po tym imieniu, nazwisko np "Baranowska-Kowalska". Jeśli w tabeli znajdą się dwie Mamy o różnym imieniu lub nazwisku, to wtedy dzieci tych dwóch osób będą traktowane dla każdej z tych osób osobno')
+        help_imie_tresc.setWordWrap(True)
+
+        help_window2 = QWidget()
+        help_layout2 = QVBoxLayout()
+        help_layout2.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        help_layout2.setSpacing(30)
+        help_window2.setLayout(help_layout2)
+
+        help_przetwarzanie_h1 = QLabel("<h1>Przetwarzanie</h1>")
+        help_przetwarzanie_tresc = QLabel('Aby zacząć przetwarzać należy najpierw wczytać plik, robi się to guzikiem <b>"Otwórz Plik"</b> znajduję się on w menu <b>Plik</b>. Następnie po otwarciu pliku w oknie wyświetlą się listy wraz z kolumnami. Należy wybrać dla każdej listy odpowiednią kolumnę. Na przykład dla listy z dopiskiem "Imie i Nazwisko Mamy", należy wybrać, która kolumna w')
+        help_przetwarzanie_tresc.setWordWrap(True)
+
+
+        help_layout1.addWidget(help_imie_h1)
+        help_layout1.addWidget(help_imie_tresc)
+        self.main_stack.addWidget(help_window1)
+
+        self.main_stack.setCurrentIndex(0)
+
+        # configuring buttons
+        next_button = QToolButton()
+        next_button.setArrowType(Qt.RightArrow)
+        next_button.setToolButtonStyle(Qt.ToolButtonIconOnly)
+
+        previous_button = QToolButton()
+        previous_button.setArrowType(Qt.LeftArrow)
+        previous_button.setToolButtonStyle(Qt.ToolButtonIconOnly)
+
+
+        buttons_layout.addWidget(previous_button)
+        buttons_layout.addWidget(next_button)
+
+        # configuring page counter
+        self.strona = QLabel(f"Strona {self.main_stack.currentIndex()+1}/{self.main_stack.count()}")
+        self.strona.setAlignment(Qt.AlignmentFlag.AlignRight)
+
+        # adding everything together
+        main_layout.addLayout(self.main_stack)
+        main_layout.addLayout(buttons_layout)
+        main_layout.addWidget(self.strona)
+
+        self.setLayout(main_layout)
+
+class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
 
@@ -78,9 +149,15 @@ class Window(QMainWindow):
         window1_layout.setSpacing(30)
         self.window1.setLayout(window1_layout)
 
-        enter = QLabel('Witamy w przetwarzaniu excela')
-        enter.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        opis = QLabel('Jeśli potrzebujesz pomocy kliknij na górze guzik o nazwie "Pomoc", jeśli chcesz załadować plik i zacząć go przetwarzać kliknij "Otwórz Plik". Po otwarciu i przetworzeniu pliku zapisz go guzikiem ')
+        enter = QLabel('<h1>Witamy w przetwarzaniu excela</h1>')
+        enter.setAlignment(Qt.AlignmentFlag.AlignHCenter)
+        opis = QLabel('Jeśli potrzebujesz pomocy kliknij na górze guzik o nazwie "Pomoc", jeśli chcesz załadować plik i zacząć go przetwarzać kliknij "Otwórz Plik". Po otwarciu i przetworzeniu pliku zapisz go guzikiem "Zapisz Plik"')
+        opis.setStyleSheet("""
+            font-size: 20px;
+            text-align: justify;
+        """)
+        opis.setWordWrap(True)
+
         window1_layout.addWidget(enter)
         window1_layout.addWidget(opis)
 
@@ -156,7 +233,7 @@ class Window(QMainWindow):
         self.main_stack.addWidget(self.window3)
 
         self.switch_modes(True)
-        self.main_stack.setCurrentWidget(self.window2)
+        self.main_stack.setCurrentWidget(self.window1)
 
     def file_open(self):
         path = QFileDialog().getOpenFileName(QWidget(self), 'Open file', os.getcwd(), "Excel Files (*.xlsx)")[0]
@@ -229,96 +306,86 @@ class Window(QMainWindow):
             self.window_help = None
 
         if self.window_help is None:
-            self.window_help = QWidget()
+            self.window_help = HelpWindow()
             self.window_help.closeEvent = lambda event: (cleanup(),event.accept())
-            self.window_help.setWindowTitle("Pomoc")
-            layout_help = QHBoxLayout()
-
-            layout_help.addWidget(QLabel("cos"))
-
-
-            self.window_help.setLayout(layout_help)
-            self.window_help.layout().setAlignment(Qt.AlignmentFlag.AlignCenter)
             self.window_help.show()
         else:
             self.window_help.raise_()
 
     def switch_modes(self,dark_mode):
-        if dark_mode:
-            self.setStyleSheet("""
-                        QMainWindow {
-                            background-color: #242424;
-                        }
-                        QWidget {
-                            background-color: #242424;
-                            color: #FFFFFF;
-                        }
-                        
-                        QPushButton{
-                            background-color: #212121;
-                            color: #FFFFFF;
-                            padding: 3px;
-                            border: 2px solid #404040;
-                            float:left;
-                        }
-                        QPushButton:hover{
-                            background-color: #aba7ab;
-                            color: #212121;
-                            padding: 3px;
-                            border: 2px solid #919191;
-                            float:left;
-                        }
-                        
-                        QComboBox {
-                            background-color: #333333;
-                            color: white;
-                            border: 1px solid #555;
-                            padding: 5px;
-                        }
-                        QComboBox::drop-down {
-                            border: none;
-                            background: #444;
-                            color: white;
-                        }
-                        QComboBox QAbstractItemView {
-                            background-color: #333333;
-                            color: white;
-                            selection-background-color: #555555;
-                        }
-                       QComboBox QAbstractItemView::item:hover,
-                       QComboBox QAbstractItemView::item:selected {
-                            background-color: gray; /* Change background color on hover */
-                            color: black; /* Change text color on hover */
-                        }
-       
-       
-                        QMenuBar{
-                            background-color: #222;
-                        }
-                        QMenuBar::item {
-                            padding: 3px 15px;
-                            width: 100%;
-                            float:left
-                        }
-                        QMenuBar::item:selected { /* when selected using mouse or keyboard */
-                            background: #a8a8a8;
-                            color: black;
-                        }
-                        
-                       QMenu {
-                           background-color: #333333;
-                           border: 1px solid #555555;
-                       }
-                       QMenu::item {
-                           padding: 6px 20px;
-                           color: white;
-                       }
-                       QMenu::item:selected {
-                           background-color: #555555;
-                       }
-                    """)
-        else:
-            self.setStyleSheet("""
+        dark_mode_css = """
+            QMainWindow {
+                background-color: #242424;
+            }
+            QWidget {
+                background-color: #242424;
+                color: #FFFFFF;
+            }
+            
+            QPushButton{
+                background-color: #212121;
+                color: #FFFFFF;
+                padding: 3px;
+                border: 2px solid #404040;
+                float:left;
+            }
+            QPushButton:hover{
+                background-color: #aba7ab;
+                color: #212121;
+                padding: 3px;
+                border: 2px solid #919191;
+                float:left;
+            }
+            
+            QComboBox {
+                background-color: #333333;
+                color: white;
+                border: 1px solid #555;
+                padding: 5px;
+            }
+            QComboBox::drop-down {
+                border: none;
+                background: #444;
+                color: white;
+            }
+            QComboBox QAbstractItemView {
+                background-color: #333333;
+                color: white;
+                selection-background-color: #555555;
+            }
+           QComboBox QAbstractItemView::item:hover,
+           QComboBox QAbstractItemView::item:selected {
+                background-color: gray; /* Change background color on hover */
+                color: black; /* Change text color on hover */
+            }
+    
+    
+            QMenuBar{
+                background-color: #222;
+            }
+            QMenuBar::item {
+                padding: 3px 15px;
+                width: 100%;
+                float:left
+            }
+            QMenuBar::item:selected { /* when selected using mouse or keyboard */
+                background: #a8a8a8;
+                color: black;
+            }
+            
+           QMenu {
+               background-color: #333333;
+               border: 1px solid #555555;
+           }
+           QMenu::item {
+               padding: 6px 20px;
+               color: white;
+           }
+           QMenu::item:selected {
+               background-color: #555555;
+           }
+        """
+        white_mode_css = """
                 QMainWindow {
                     background-color: #F5F5F5;
                 }
@@ -389,7 +456,12 @@ class Window(QMainWindow):
                 QMenu::item:selected {
                     background-color: #DDDDDD;
                 }
-                """)
+        """
+
+        if dark_mode:
+            self.setStyleSheet(dark_mode_css)
+        else:
+            self.setStyleSheet(white_mode_css)
         if QSysInfo.productType() == 'windows':
             try:
                 hwnd = self.winId()  # Get window handle
@@ -422,6 +494,6 @@ class Window(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication([])
-    window = Window()
+    window = MainWindow()
     window.show()
     app.exec()
