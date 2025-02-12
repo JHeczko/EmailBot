@@ -8,3 +8,4 @@
 *.xlsx#
 *.zip
 test.*
+./tests

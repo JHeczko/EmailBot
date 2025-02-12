@@ -3,7 +3,7 @@ import os.path
 
 import openpyxl
 from openpyxl import load_workbook
-from PySide6.QtCore import Qt, QSize, QSysInfo
+from PySide6.QtCore import Qt, QSize, QSysInfo, QTranslator, QLocale, QLibraryInfo
 from PySide6.QtGui import QIcon, QPixmap, QPalette, QAction, QGuiApplication, QColor
 from PySide6.QtWidgets import QWidget, QApplication, QMainWindow, QFileDialog, QToolBar, QMessageBox, QStackedLayout, \
     QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton, QSizePolicy, QToolButton
@@ -29,6 +29,7 @@ class HelpWindow(QWidget):
         buttons_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
         # configuring help text
+        # =========== 1 HELP ABOUT OPENING DATA AND FORMAT OF DATA ===========
         help_window1 = QWidget()
         help_layout1 = QVBoxLayout()
         help_layout1.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -36,9 +37,15 @@ class HelpWindow(QWidget):
         help_window1.setLayout(help_layout1)
 
         help_imie_h1 = QLabel("<h1>Format Imienia i Nazwiska</h1>")
-        help_imie_tresc = QLabel('Imie i nazwisko mamy w bazowej tabeli powinno być sformatowane w taki sposób, aby stanowiło dwa człony, czyli mamy imię na przykład "Katarzyna" i po tym imieniu, nazwisko np "Baranowska-Kowalska". Jeśli w tabeli znajdą się dwie Mamy o różnym imieniu lub nazwisku, to wtedy dzieci tych dwóch osób będą traktowane dla każdej z tych osób osobno')
+        help_imie_h1.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        help_imie_tresc = QLabel('Imie i nazwisko mamy w bazowej tabeli powinno być sformatowane w taki sposób, aby stanowiło dwa człony, czyli mamy imię na przykład "Katarzyna" i po tym imieniu, nazwisko np "Baranowska-Kowalska". Jeśli w tabeli znajdą się dwie Mamy o różnym imieniu lub nazwisku, to wtedy dzieci tych dwóch osób będą traktowane dla każdej z tych osób osobno. W kolumnie <b>EMAIL</b> powinny być maile oddzielone ";", jeśli jest jeden mail to wystaczy wpisać tylko tego maila bez średniak(";"). Liczby zadłużeń muszą być liczbami.')
         help_imie_tresc.setWordWrap(True)
 
+        help_layout1.addWidget(help_imie_h1)
+        help_layout1.addWidget(help_imie_tresc)
+        self.main_stack.addWidget(help_window1)
+
+        # =========== 2 HELP ABOUT PROCESSING DARA ===========
         help_window2 = QWidget()
         help_layout2 = QVBoxLayout()
         help_layout2.setAlignment(Qt.AlignmentFlag.AlignCenter)
@@ -46,13 +53,30 @@ class HelpWindow(QWidget):
         help_window2.setLayout(help_layout2)
 
         help_przetwarzanie_h1 = QLabel("<h1>Przetwarzanie</h1>")
-        help_przetwarzanie_tresc = QLabel('Aby zacząć przetwarzać należy najpierw wczytać plik, robi się to guzikiem <b>"Otwórz Plik"</b> znajduję się on w menu <b>Plik</b>. Następnie po otwarciu pliku w oknie wyświetlą się listy wraz z kolumnami. Należy wybrać dla każdej listy odpowiednią kolumnę. Na przykład dla listy z dopiskiem "Imie i Nazwisko Mamy", należy wybrać, która kolumna w')
+        help_przetwarzanie_h1.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        help_przetwarzanie_tresc = QLabel('Aby zacząć przetwarzać należy najpierw wczytać plik, robi się to guzikiem <b>"Otwórz Plik"</b> znajduję się on w menu <b>Plik</b>. Następnie po otwarciu pliku w oknie wyświetlą się listy wraz z kolumnami. Należy wybrać dla każdej listy odpowiednią kolumnę. Na przykład dla listy z dopiskiem "Imie i Nazwisko Mamy", należy wybrać, kolumne tytuł kolumny, która odpowiada, kolumnie z odpowiednimi danymi. Można również wybrać odpowiednią opcję sformatowanych danych, czy w kolumnie mamy dane w formacie IMIE-NAZWISKO, czy NAZWISKO-IMIE, czy może same NAZWISKO')
         help_przetwarzanie_tresc.setWordWrap(True)
 
+        help_layout2.addWidget(help_przetwarzanie_h1)
+        help_layout2.addWidget(help_przetwarzanie_tresc)
+        self.main_stack.addWidget(help_window2)
 
-        help_layout1.addWidget(help_imie_h1)
-        help_layout1.addWidget(help_imie_tresc)
-        self.main_stack.addWidget(help_window1)
+        # =========== 3 HELP ABOUT SAVING FILE ===========
+        help_window3 = QWidget()
+        help_layout3 = QVBoxLayout()
+        help_layout3.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        help_layout3.setSpacing(30)
+        help_window3.setLayout(help_layout3)
+
+        help_zapis_h1 = QLabel("<h1>Zapis</h1>")
+        help_zapis_h1.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        help_zapis_tresc = QLabel('Po przetworzeniu pliku wyświetli nam się strona, która powie, że wszystko poszło ok, to nie oznacza, że dane zostały poprawnie przetworzone, oznacza to, że program nie napotkał żadnego błędu na drodze, może się zdarzyć, że kolumny zostały źle zaznaczone, a więc dane również źle przetworzone i wynik może być bez sensu, należy więc zweryfikować końcowy plik. Aby ten końcowy plik dostać należy kliknąć, w menu <b>"Plik"</b> przycisk <b>"Zapisz Plik"</b>')
+        help_zapis_tresc.setWordWrap(True)
+
+        help_layout3.addWidget(help_zapis_h1)
+        help_layout3.addWidget(help_zapis_tresc)
+        self.main_stack.addWidget(help_window3)
+
 
         self.main_stack.setCurrentIndex(0)
 
@@ -60,11 +84,12 @@ class HelpWindow(QWidget):
         next_button = QToolButton()
         next_button.setArrowType(Qt.RightArrow)
         next_button.setToolButtonStyle(Qt.ToolButtonIconOnly)
+        next_button.pressed.connect(self.next)
 
         previous_button = QToolButton()
         previous_button.setArrowType(Qt.LeftArrow)
         previous_button.setToolButtonStyle(Qt.ToolButtonIconOnly)
-
+        previous_button.pressed.connect(self.previous)
 
         buttons_layout.addWidget(previous_button)
         buttons_layout.addWidget(next_button)
@@ -80,6 +105,17 @@ class HelpWindow(QWidget):
 
         self.setLayout(main_layout)
 
+    def next(self):
+        ind = self.main_stack.currentIndex()
+        if ind + 1 < self.main_stack.count():
+            self.main_stack.setCurrentIndex(ind + 1)
+            self.strona.setText(f"Strona {self.main_stack.currentIndex()+1}/{self.main_stack.count()}")
+
+    def previous(self):
+        ind = self.main_stack.currentIndex()
+        if ind -1 >= 0:
+            self.main_stack.setCurrentIndex(ind -1)
+            self.strona.setText(f"Strona {self.main_stack.currentIndex()+1}/{self.main_stack.count()}")
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -115,24 +151,23 @@ class MainWindow(QMainWindow):
 
         # =-=-=-=-=--= PLATFORM CUSTOMIZATION =-=-=-=-=--=
         if QSysInfo.productType() == 'macos':
-            toolbar = QToolBar(self)
-            toolbar.addAction(button_open)
-            toolbar.addSeparator()
-            toolbar.addAction(button_save)
-            toolbar.addSeparator()
-            toolbar.addAction(button_help)
-            toolbar.addSeparator()
-            toolbar.addAction(button_help)
-            self.addToolBar(toolbar)
-
-
-        # adding menu for the app
-        menu = self.menuBar()
-        file_menu = menu.addMenu("&Plik")
-        menu.addAction(button_help)
-        menu.addAction(button_mode)
-        file_menu.addAction(button_open)
-        file_menu.addAction(button_save)
+            menu = self.menuBar()
+            file_menu = menu.addMenu("&Plik")
+            #util_menu = menu.addMenu("&Ustawienia")
+            help_menu = menu.addMenu("&Pomoc")
+            help_menu.addAction(button_help)
+            #util_menu.addAction(button_mode)
+            file_menu.addAction(button_open)
+            file_menu.addAction(button_save)
+        else:
+            menu = self.menuBar()
+            file_menu = menu.addMenu("&Plik")
+            menu.addAction(button_help)
+            menu.addAction(button_mode)
+            file_menu.addAction(button_open)
+            file_menu.addAction(button_save)
+            # this line is only for windows QSS working nicely for windows only, mac os has nativly nice themes for apps
+            self.switch_modes(True)
 
         # create the main widget with stack(central widget)
         self.main_widget = QWidget()
@@ -227,20 +262,39 @@ class MainWindow(QMainWindow):
         window3_layout.addWidget(w3_text)
         window3_layout.addWidget(w3_text2)
 
-        w3_button = QPushButton()
-        w3_button.setText("Anuluj")
+        window3_button_layout = QHBoxLayout()
+        window3_button_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        w3_button = QPushButton("Wróć")
         w3_button.pressed.connect(self.back_button)
-        window3_layout.addWidget(w3_button)
+        window3_button_layout.addWidget(w3_button)
+        window3_layout.addLayout(window3_button_layout)
 
         # =-==-=-=-=-=-= ADDING EVERYTHING TOGETHER =-==-=-=-=-=-=
         self.main_stack.addWidget(self.window1)
         self.main_stack.addWidget(self.window2)
         self.main_stack.addWidget(self.window3)
 
-        self.switch_modes(True)
         self.main_stack.setCurrentWidget(self.window1)
 
     def file_open(self):
+        '''
+        Opening a file from a disk that user select, also if there is already opened and preprocessed file it will clean it up from prorgam memory
+        :return:
+        '''
+        # mechanism for checking if there is already a processed file in memory if so then aks user if he want to delete it
+        if self.workbook_edited is not None:
+            result = QMessageBox.question(self, "Nie zapisano",
+                                          "Masz niezapisany przetworzony arkusz, czy napewno chcesz otworzyć nowy arkusz i porzucić stary niezapisując go?", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if result == QMessageBox.No:
+                return
+            else:
+                try:
+                    self.workbook_edited.close()
+                    self.workbook_edited = None
+                    self.main_stack.setCurrentWidget(self.window1)
+                except Exception as e: pass
+
+        # standard loading steps from here
         path = QFileDialog().getOpenFileName(QWidget(self), 'Open file', os.getcwd(), "Excel Files (*.xlsx)")[0]
         if self.workbook is not None:
             try:
@@ -266,6 +320,10 @@ class MainWindow(QMainWindow):
 
 
     def file_save(self):
+        '''
+        Saving file and clearing memory from everything, basicly doing back button, but without asking of anything
+        :return:
+        '''
         if self.workbook_edited is None:
             QMessageBox.critical(self, "Nie przetworzono arkusza", "Arkusz jest nieprzetworzony, nie mozna zapisac")
             return
@@ -274,7 +332,19 @@ class MainWindow(QMainWindow):
         if path != '' and path is not None:
             try:
                 self.workbook_edited.save(path)
-                self.back_button()
+                self.main_stack.setCurrentWidget(self.window1)
+                try:
+                    self.workbook.close()
+                except Exception as e:
+                    pass
+
+                try:
+                    self.workbook_edited.close()
+                except Exception as e:
+                    pass
+                self.workbook = None
+                self.workbook_edited = None
+                self.labels = []
                 QMessageBox.information(self,"Wszystko ok", f"Zapisano poprawnie plik pod nazwą {os.path.basename(path)}")
             except Exception as e:
                 self.back_button()
@@ -283,11 +353,18 @@ class MainWindow(QMainWindow):
             return
 
     def back_button(self):
+        # it is a checker if there is already some proccessed file in the memory of program
+        if self.workbook_edited is not None:
+            result = QMessageBox.question(self, "Nie zapisano",
+                                          "Masz niezapisany przetworzony arkusz, czy napewno chcesz porzucić zrobione do teraz zmiany", QMessageBox.Yes | QMessageBox.No, QMessageBox.No)
+            if result == QMessageBox.No:
+                return
+
+        # cleanup steps
         self.main_stack.setCurrentWidget(self.window1)
         try:
             self.workbook.close()
         except Exception as e: pass
-
         try:
             self.workbook_edited.close()
         except Exception as e: pass
@@ -465,8 +542,12 @@ class MainWindow(QMainWindow):
 
         if dark_mode:
             self.setStyleSheet(dark_mode_css)
+            if self.window_help is not None:
+                self.setStyleSheet(dark_mode_css)
         else:
             self.setStyleSheet(white_mode_css)
+            if self.window_help is not None:
+                self.setStyleSheet(white_mode_css)
         if QSysInfo.productType() == 'windows':
             try:
                 hwnd = self.winId()  # Get window handle
@@ -499,6 +580,9 @@ class MainWindow(QMainWindow):
 
 if __name__ == '__main__':
     app = QApplication([])
+    translator = QTranslator()
+    if translator.load(QLocale("pl_PL"), "qtbase", "_", QLibraryInfo.location(QLibraryInfo.TranslationsPath)):
+        app.installTranslator(translator)
     window = MainWindow()
     window.show()
     app.exec()
