@@ -1,3 +1,5 @@
+import string
+
 from openpyxl import Workbook,load_workbook
 from openpyxl.styles import Font, Alignment, PatternFill
 
@@ -35,8 +37,14 @@ def edit_excel(workbook,i_mama, i_mail, i_r1, i_r2, i_r3, i_r4=None, i_r5 = None
 
     # =-=-=-=-=-=-=-=-=SORTING DATA FROM OLD WORKBOOK=-=-=-=-=-=-=-=-=
     for row in sheet.iter_rows(min_row=2,min_col=0, values_only=True):
-        mama = row[i_mama] if row[i_mama] is not None else 'nieznany_rodzic'
-        mail = row[i_mail] if row[i_mail] is not None else ''
+        #mama = row[i_mama] if row[i_mama] is not None else 'nieznany_rodzic'
+        mama = row[i_mama]
+        if row[i_mama] is None:
+            mama = 'nieznany_rodzic'
+        elif row[i_mama].translate(str.maketrans('','', string.whitespace)) == '':
+            mama = 'nieznany_rodzic'
+
+        mail = row[i_mail].translate(str.maketrans('','', string.whitespace)) if row[i_mail] is not None else ''
         moneyR1 = int(row[i_r1]) if row[i_r1] is not None else 0
         moneyR2 = int(row[i_r2]) if row[i_r2] is not None else 0
         moneyR3 = int(row[i_r3]) if row[i_r3] is not None else 0
@@ -88,21 +96,20 @@ def edit_excel(workbook,i_mama, i_mail, i_r1, i_r2, i_r3, i_r4=None, i_r5 = None
     # ============Filling data============
     row = 2
     for mama in hashImieMail.keys():
-        nazwiskoMama = ""
+        nazwiskoMama = mama.split()
 
         # name processing
         if mode == 0:
-            nazwiskoMama = mama.split()
             nazwiskoMama = nazwiskoMama[1:] if len(nazwiskoMama) != 1 else nazwiskoMama[0] + " nieznane_nazwisko"
             nazwiskoMama = ''.join(nazwiskoMama)
         elif mode == 1:
-            nazwiskoMama = mama.split()
+            nazwiskoMama.reverse()
             nazwiskoMama = nazwiskoMama[1:] if len(nazwiskoMama) != 1 else nazwiskoMama[0] + " nieznane_nazwisko"
             nazwiskoMama = ''.join(nazwiskoMama)
 
         # mail processing
         mailMama = hashImieMail[mama].split(';')
-        mailMama = '|'.join(mailMama)
+        mailMama = '|=|'.join(mailMama)
 
         newSheet.cell(row=row, column=1, value="Szanowna Pani")
         newSheet.cell(row=row, column=2, value=nazwiskoMama if mama!="nieznany_rodzic" else "Nie znaleziono mamy!")

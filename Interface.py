@@ -197,6 +197,7 @@ class MainWindow(QMainWindow):
         window1_layout.addWidget(opis)
 
         # =-==-=-=-=-=-= SECOND SCENE AKA LOADED FILE=-==-=-=-=-=-=
+        # TODO need a selectio for mode processing and then we are done
         self.window2 = QWidget()
         window2_layout = QVBoxLayout()
         window2_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
