@@ -214,11 +214,16 @@ class MainWindow(QMainWindow):
         window3_layout.setSpacing(20)
         self.window3.setLayout(window3_layout)
 
-        w3_text = QLabel("Wszystko poszło ok")
+        w3_text = QLabel("<h1>Wszystko poszło ok</h1>")
         w3_text.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        w3_text2 = QLabel('"Plik teraz należy zapisać trzeba przejść do menu "Plik" -> "Zapisz plik", następnie wybieramy lokalizację zapisu i nazwę pliku')
+        w3_text2 = QLabel('"Plik teraz należy zapisać trzeba przejść do menu <b>"Plik" -> "Zapisz plik"</b>, następnie wybieramy lokalizację zapisu i nazwę pliku')
         w3_text2.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        w3_text2.setStyleSheet("""
+              font-size: 20px;
+              text-align: justify;
+          """)
+
         window3_layout.addWidget(w3_text)
         window3_layout.addWidget(w3_text2)
 
