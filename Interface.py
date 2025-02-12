@@ -37,6 +37,10 @@ class Window(QMainWindow):
         button_save.triggered.connect(self.file_save)
         button_help = QAction("Pomoc", self)
         button_help.triggered.connect(self.help_popup)
+        button_mode = QAction("Tryb ciemny/jasny",self)
+        button_mode.setCheckable(True)
+        button_mode.setChecked(True)
+        button_mode.triggered.connect(self.switch_modes)
 
         # =-=-=-=-=--= PLATFORM CUSTOMIZATION =-=-=-=-=--=
         if QSysInfo.productType() == 'macos':
@@ -46,15 +50,16 @@ class Window(QMainWindow):
             toolbar.addAction(button_save)
             toolbar.addSeparator()
             toolbar.addAction(button_help)
+            toolbar.addSeparator()
+            toolbar.addAction(button_help)
             self.addToolBar(toolbar)
-        elif QSysInfo.productType() == 'windows':
-            self.apply_dark_theme()
 
 
         # adding menu for the app
         menu = self.menuBar()
         file_menu = menu.addMenu("&Plik")
         menu.addAction(button_help)
+        menu.addAction(button_mode)
         file_menu.addAction(button_open)
         file_menu.addAction(button_save)
 
@@ -83,6 +88,7 @@ class Window(QMainWindow):
         self.window2 = QWidget()
         window2_layout = QVBoxLayout()
         window2_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
         # adding text with file name
         window2_layout.addWidget(self.file_name)
 
@@ -149,16 +155,21 @@ class Window(QMainWindow):
         self.main_stack.addWidget(self.window2)
         self.main_stack.addWidget(self.window3)
 
+        self.switch_modes(True)
         self.main_stack.setCurrentWidget(self.window2)
 
     def file_open(self):
         path = QFileDialog().getOpenFileName(QWidget(self), 'Open file', os.getcwd(), "Excel Files (*.xlsx)")[0]
+        if self.workbook is not None:
+            try:
+                self.workbook.close()
+            except Exception: pass
         if path == '':
             return
         if path != '' and path is not None:
             try:
                 self.workbook = load_workbook(path)
-                self.labels =  [x.value for x in self.workbook.active[1]]
+                self.labels = [x.value for x in self.workbook.active[1]]
                 self.file_name.setText(f"Praca na pliku: \"{os.path.basename(path)}\"")
 
                 self.main_stack.setCurrentWidget(self.window2)
@@ -179,21 +190,15 @@ class Window(QMainWindow):
 
         path = QFileDialog().getSaveFileName(QWidget(self), 'Save file', os.getcwd(), "Excel Files (*.xlsx)")[0]
         if path != '' and path is not None:
-            self.workbook_edited.save(path)
-            self.back_button()
-            QMessageBox.information(self,"Wszystko ok", f"Zapisano poprawnie plik pod nazwą {os.path.basename(path)}")
+            try:
+                self.workbook_edited.save(path)
+                self.back_button()
+                QMessageBox.information(self,"Wszystko ok", f"Zapisano poprawnie plik pod nazwą {os.path.basename(path)}")
+            except Exception as e:
+                self.back_button()
+                QMessageBox.critical(self, "Błąd zapisu", "Coś nie tak z zapisywaniem pliku")
         else:
             return
-
-    def help_popup(self):
-        self.window_help = QWidget()
-        self.window_help.setWindowTitle("Pomoc")
-        layout_help = QHBoxLayout()
-        layout_help.addWidget(QLabel("cos"))
-        self.window_help.setLayout(layout_help)
-
-        self.window_help.layout().setAlignment(Qt.AlignmentFlag.AlignCenter)
-        self.window_help.show()
 
     def back_button(self):
         self.main_stack.setCurrentWidget(self.window1)
@@ -219,102 +224,201 @@ class Window(QMainWindow):
             self.back_button()
             QMessageBox.critical(self, "Błąd przetwarzania", "Coś nie tak z przetwarzaniem. Upewnij się, że kolumny są poprawnie wybrane oraz dane są poprawnie przygotowane")
 
-    def apply_dark_theme(self,dark_mode = True):
-        self.setStyleSheet("""
-                    QMainWindow {
-                        background-color: #242424;
-                    }
-                    QWidget {
-                        background-color: #242424;
-                        color: #FFFFFF;
-                    }
-                    
-                    QPushButton{
-                        background-color: #212121;
-                        color: #FFFFFF;
-                        padding: 3px;
-                        border: 2px solid #404040;
-                        float:left;
-                    }
-                    QPushButton:hover{
-                        background-color: #aba7ab;
-                        color: #212121;
-                        padding: 3px;
-                        border: 2px solid #919191;
-                        float:left;
-                    }
-                    
-                    QComboBox {
-                        background-color: #333333;
-                        color: white;
-                        border: 1px solid #555;
-                        padding: 5px;
-                    }
-                    QComboBox::drop-down {
-                        border: none;
-                        background: #444;
-                        color: white;
-                    }
-                    QComboBox QAbstractItemView {
-                        background-color: #333333;
-                        color: white;
-                        selection-background-color: #555555;
-                    }
-                    
-                    QMenuBar{
-                        background-color: #222;
-                    }
-                    QMenuBar::item {
-                        padding: 3px 15px;
-                        width: 100%;
-                        float:left
-                    }
-                    QMenuBar::item:selected { /* when selected using mouse or keyboard */
-                        background: #a8a8a8;
-                        color: black;
-                    }
-                    
-                   QMenu {
-                       background-color: #333333;
-                       border: 1px solid #555555;
-                   }
-                   QMenu::item {
-                       padding: 6px 20px;
-                       color: white;
-                   }
-                   QMenu::item:selected {
-                       background-color: #555555;
-                   }
+    def help_popup(self):
+        def cleanup():
+            self.window_help = None
+
+        if self.window_help is None:
+            self.window_help = QWidget()
+            self.window_help.closeEvent = lambda event: (cleanup(),event.accept())
+            self.window_help.setWindowTitle("Pomoc")
+            layout_help = QHBoxLayout()
+
+            layout_help.addWidget(QLabel("cos"))
+
+
+            self.window_help.setLayout(layout_help)
+            self.window_help.layout().setAlignment(Qt.AlignmentFlag.AlignCenter)
+            self.window_help.show()
+        else:
+            self.window_help.raise_()
+
+    def switch_modes(self,dark_mode):
+        if dark_mode:
+            self.setStyleSheet("""
+                        QMainWindow {
+                            background-color: #242424;
+                        }
+                        QWidget {
+                            background-color: #242424;
+                            color: #FFFFFF;
+                        }
+                        
+                        QPushButton{
+                            background-color: #212121;
+                            color: #FFFFFF;
+                            padding: 3px;
+                            border: 2px solid #404040;
+                            float:left;
+                        }
+                        QPushButton:hover{
+                            background-color: #aba7ab;
+                            color: #212121;
+                            padding: 3px;
+                            border: 2px solid #919191;
+                            float:left;
+                        }
+                        
+                        QComboBox {
+                            background-color: #333333;
+                            color: white;
+                            border: 1px solid #555;
+                            padding: 5px;
+                        }
+                        QComboBox::drop-down {
+                            border: none;
+                            background: #444;
+                            color: white;
+                        }
+                        QComboBox QAbstractItemView {
+                            background-color: #333333;
+                            color: white;
+                            selection-background-color: #555555;
+                        }
+                       QComboBox QAbstractItemView::item:hover,
+                       QComboBox QAbstractItemView::item:selected {
+                            background-color: gray; /* Change background color on hover */
+                            color: black; /* Change text color on hover */
+                        }
+       
+       
+                        QMenuBar{
+                            background-color: #222;
+                        }
+                        QMenuBar::item {
+                            padding: 3px 15px;
+                            width: 100%;
+                            float:left
+                        }
+                        QMenuBar::item:selected { /* when selected using mouse or keyboard */
+                            background: #a8a8a8;
+                            color: black;
+                        }
+                        
+                       QMenu {
+                           background-color: #333333;
+                           border: 1px solid #555555;
+                       }
+                       QMenu::item {
+                           padding: 6px 20px;
+                           color: white;
+                       }
+                       QMenu::item:selected {
+                           background-color: #555555;
+                       }
+                    """)
+        else:
+            self.setStyleSheet("""
+                QMainWindow {
+                    background-color: #F5F5F5;
+                }
+                
+                QWidget {
+                    background-color: #F5F5F5;
+                    color: #212121;
+                }
+                
+                QPushButton {
+                    background-color: #E0E0E0;
+                    color: #212121;
+                    padding: 3px;
+                    border: 2px solid #B0B0B0;
+                    float: left;
+                }
+                QPushButton:hover {
+                    background-color: #D6D6D6;
+                    color: #000000;
+                    padding: 3px;
+                    border: 2px solid #8E8E8E;
+                    float: left;
+                }
+                
+                QComboBox {
+                    background-color: #FFFFFF;
+                    color: black;
+                    border: 1px solid #AAAAAA;
+                    padding: 5px;
+                }
+                QComboBox::drop-down {
+                    border: none;
+                    background: #DDDDDD;
+                    color: black;
+                }
+                QComboBox QAbstractItemView {
+                    background-color: #FFFFFF;
+                    color: black;
+                    selection-background-color: #DDDDDD;
+                }
+                QComboBox QAbstractItemView::item:hover,
+                QComboBox QAbstractItemView::item:selected {
+                    background-color: #C0C0C0;
+                    color: black;
+                }
+                
+                QMenuBar {
+                    background-color: #E0E0E0;
+                }
+                QMenuBar::item {
+                    padding: 3px 15px;
+                    width: 100%;
+                    float: left;
+                }
+                QMenuBar::item:selected { /* when selected using mouse or keyboard */
+                    background: #C0C0C0;
+                    color: black;
+                }
+                
+                QMenu {
+                    background-color: #FFFFFF;
+                    border: 1px solid #AAAAAA;
+                }
+                QMenu::item {
+                    padding: 6px 20px;
+                    color: black;
+                }
+                QMenu::item:selected {
+                    background-color: #DDDDDD;
+                }
                 """)
+        if QSysInfo.productType() == 'windows':
+            try:
+                hwnd = self.winId()  # Get window handle
 
-        try:
-            hwnd = self.winId()  # Get window handle
+                # Define the attributes for DWM (Desktop Window Manager)
+                DWMWA_USE_IMMERSIVE_DARK_MODE = 20  # Dark mode title bar
+                DWMWA_CAPTION_COLOR = 35  # Title bar color
+                DWMWA_TEXT_COLOR = 36  # Title text color
 
-            # Define the attributes for DWM (Desktop Window Manager)
-            DWMWA_USE_IMMERSIVE_DARK_MODE = 20  # Dark mode title bar
-            DWMWA_CAPTION_COLOR = 35  # Title bar color
-            DWMWA_TEXT_COLOR = 36  # Title text color
+                # Convert dark mode flag to ctypes
+                dark_mode_flag = ctypes.c_int(1 if dark_mode else 0)
 
-            # Convert dark mode flag to ctypes
-            dark_mode_flag = ctypes.c_int(1 if dark_mode else 0)
+                # Set dark/light mode
+                ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                    hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ctypes.byref(dark_mode_flag), ctypes.sizeof(dark_mode_flag)
+                )
 
-            # Set dark/light mode
-            ctypes.windll.dwmapi.DwmSetWindowAttribute(
-                hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ctypes.byref(dark_mode_flag), ctypes.sizeof(dark_mode_flag)
-            )
+                # Set custom title bar color (only works when `DWMWA_USE_IMMERSIVE_DARK_MODE` is enabled)
+                title_bar_color = 0x4d4d4d if dark_mode else 0xFFFFFF  # Dark or white
+                ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                    hwnd, DWMWA_CAPTION_COLOR, ctypes.byref(ctypes.c_int(title_bar_color)), 4
+                )
 
-            # Set custom title bar color (only works when `DWMWA_USE_IMMERSIVE_DARK_MODE` is enabled)
-            title_bar_color = 0x4d4d4d if dark_mode else 0xFFFFFF  # Dark or white
-            ctypes.windll.dwmapi.DwmSetWindowAttribute(
-                hwnd, DWMWA_CAPTION_COLOR, ctypes.byref(ctypes.c_int(title_bar_color)), 4
-            )
-
-            # Set title text color (optional)
-            text_color = 0xFFFFFF if dark_mode else 0x000000
-            ctypes.windll.dwmapi.DwmSetWindowAttribute(
-                hwnd, DWMWA_TEXT_COLOR, ctypes.byref(ctypes.c_int(text_color)), 4)
-        except Exception as e:
-            print("Something wrong with windows native color changing for toolbars")
+                # Set title text color (optional)
+                text_color = 0xFFFFFF if dark_mode else 0x000000
+                ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                    hwnd, DWMWA_TEXT_COLOR, ctypes.byref(ctypes.c_int(text_color)), 4)
+            except Exception as e:
+                print("Something wrong with windows native color changing for toolbars")
 
 if __name__ == '__main__':
     app = QApplication([])
