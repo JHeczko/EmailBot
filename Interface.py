@@ -3,10 +3,9 @@ import os.path
 
 import openpyxl
 from openpyxl import load_workbook
-from PySide6.QtCore import Qt, QSize, QSysInfo, QTranslator, QLocale, QLibraryInfo
-from PySide6.QtGui import QIcon, QPixmap, QPalette, QAction, QGuiApplication, QColor
-from PySide6.QtWidgets import QWidget, QApplication, QMainWindow, QFileDialog, QToolBar, QMessageBox, QStackedLayout, \
-    QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton, QSizePolicy, QToolButton
+from PySide6.QtCore import Qt, QSysInfo, QTranslator, QLocale, QLibraryInfo
+from PySide6.QtGui import QIcon, QPixmap, QAction
+from PySide6.QtWidgets import QWidget, QApplication, QMainWindow, QFileDialog, QMessageBox, QStackedLayout, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton, QToolButton
 from Parsing import edit_excel
 
 class HelpWindow(QWidget):
@@ -17,6 +16,9 @@ class HelpWindow(QWidget):
         self.setWindowTitle("Pomoc")
         self.setMinimumSize(500,300)
         self.setMaximumSize(700,500)
+        bitmap = QPixmap(os.path.join(os.getcwd() + "./public/logo.ico"))
+        icon = QIcon(bitmap)
+        self.setWindowIcon(icon)
 
         # main layout
         main_layout = QVBoxLayout()
@@ -38,7 +40,7 @@ class HelpWindow(QWidget):
 
         help_imie_h1 = QLabel("<h1>Format Imienia i Nazwiska</h1>")
         help_imie_h1.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        help_imie_tresc = QLabel('Imie i nazwisko mamy w bazowej tabeli powinno być sformatowane w taki sposób, aby stanowiło dwa człony, czyli mamy imię na przykład "Katarzyna" i po tym imieniu, nazwisko np "Baranowska-Kowalska". Jeśli w tabeli znajdą się dwie Mamy o różnym imieniu lub nazwisku, to wtedy dzieci tych dwóch osób będą traktowane dla każdej z tych osób osobno. W kolumnie <b>EMAIL</b> powinny być maile oddzielone ";", jeśli jest jeden mail to wystaczy wpisać tylko tego maila bez średniak(";"). Liczby zadłużeń muszą być liczbami.')
+        help_imie_tresc = QLabel('Imie i nazwisko mamy w bazowej tabeli powinno być sformatowane w taki sposób, aby stanowiło dwa człony, czyli mamy imię na przykład "Katarzyna" i po tym imieniu, nazwisko np "Baranowska-Kowalska" (może być na odwrót, o tym później). Jeśli w tabeli znajdą się dwie Mamy o różnym imieniu lub nazwisku, to wtedy dzieci tych dwóch osób będą traktowane dla każdej z tych osób osobno. W kolumnie <b>EMAIL</b> powinny być maile oddzielone ";", jeśli jest jeden mail to wystaczy wpisać tylko tego maila bez średniak(";"). Liczby zadłużeń muszą być liczbami.')
         help_imie_tresc.setWordWrap(True)
 
         help_layout1.addWidget(help_imie_h1)
@@ -54,7 +56,7 @@ class HelpWindow(QWidget):
 
         help_przetwarzanie_h1 = QLabel("<h1>Przetwarzanie</h1>")
         help_przetwarzanie_h1.setAlignment(Qt.AlignmentFlag.AlignCenter)
-        help_przetwarzanie_tresc = QLabel('Aby zacząć przetwarzać należy najpierw wczytać plik, robi się to guzikiem <b>"Otwórz Plik"</b> znajduję się on w menu <b>Plik</b>. Następnie po otwarciu pliku w oknie wyświetlą się listy wraz z kolumnami. Należy wybrać dla każdej listy odpowiednią kolumnę. Na przykład dla listy z dopiskiem "Imie i Nazwisko Mamy", należy wybrać, kolumne tytuł kolumny, która odpowiada, kolumnie z odpowiednimi danymi. Można również wybrać odpowiednią opcję sformatowanych danych, czy w kolumnie mamy dane w formacie IMIE-NAZWISKO, czy NAZWISKO-IMIE, czy może same NAZWISKO')
+        help_przetwarzanie_tresc = QLabel('Aby zacząć przetwarzać należy najpierw wczytać plik, robi się to guzikiem <b>"Otwórz Plik"</b> znajduję się on w menu <b>Plik</b>. Następnie po otwarciu pliku w oknie wyświetlą się listy wraz z kolumnami. Należy wybrać dla każdej listy odpowiednią kolumnę. Na przykład dla listy z dopiskiem "Imie i Nazwisko Mamy", należy wybrać, kolumne tytuł kolumny, która odpowiada, kolumnie z odpowiednimi danymi. Można również wybrać odpowiednią opcję sformatowanych danych, czy w kolumnie mamy dane w formacie <b>IMIE-NAZWISKO</b>, czy <b>NAZWISKO-IMIE</b>, chodzi o to w jakiej kolejności ułożone są imiona, na przykład czy w tabeli z imionami mamy <b>"Katarzyna Nowak"</b> czy <b>"Nowak Katarzyna"</b>')
         help_przetwarzanie_tresc.setWordWrap(True)
 
         help_layout2.addWidget(help_przetwarzanie_h1)
@@ -116,6 +118,7 @@ class HelpWindow(QWidget):
         if ind -1 >= 0:
             self.main_stack.setCurrentIndex(ind -1)
             self.strona.setText(f"Strona {self.main_stack.currentIndex()+1}/{self.main_stack.count()}")
+
 class MainWindow(QMainWindow):
     def __init__(self):
         super().__init__()
@@ -128,6 +131,9 @@ class MainWindow(QMainWindow):
         self.comboboxes = []
         self.file_name = QLabel('')
         self.window_help = None
+        self.theme = 0 # does not matter what value here it will be set later
+
+        # |=|=|=|=|=|=|=|=| CUSTOMIZATION |=|=|=|=|=|=|=|=|
 
         # setting up window sizes and icons
         self.setWindowTitle('Przetwarzanie excela')
@@ -144,7 +150,7 @@ class MainWindow(QMainWindow):
         button_save.triggered.connect(self.file_save)
         button_help = QAction("Pomoc", self)
         button_help.triggered.connect(self.help_popup)
-        button_mode = QAction("Tryb ciemny/jasny",self)
+        button_mode = QAction("Motyw ciemny/jasny",self)
         button_mode.setCheckable(True)
         button_mode.setChecked(True)
         button_mode.triggered.connect(self.switch_modes)
@@ -153,10 +159,8 @@ class MainWindow(QMainWindow):
         if QSysInfo.productType() == 'macos':
             menu = self.menuBar()
             file_menu = menu.addMenu("&Plik")
-            #util_menu = menu.addMenu("&Ustawienia")
             help_menu = menu.addMenu("&Pomoc")
             help_menu.addAction(button_help)
-            #util_menu.addAction(button_mode)
             file_menu.addAction(button_open)
             file_menu.addAction(button_save)
         else:
@@ -168,6 +172,8 @@ class MainWindow(QMainWindow):
             file_menu.addAction(button_save)
             # this line is only for windows QSS working nicely for windows only, mac os has nativly nice themes for apps
             self.switch_modes(True)
+
+        # |=|=|=|=|=|=|=|=| SCENE CREATION |=|=|=|=|=|=|=|=|
 
         # create the main widget with stack(central widget)
         self.main_widget = QWidget()
@@ -186,7 +192,7 @@ class MainWindow(QMainWindow):
 
         enter = QLabel('<h1>Witamy w przetwarzaniu excela</h1>')
         enter.setAlignment(Qt.AlignmentFlag.AlignHCenter)
-        opis = QLabel('Jeśli potrzebujesz pomocy kliknij na górze guzik o nazwie "Pomoc", jeśli chcesz załadować plik i zacząć go przetwarzać kliknij "Otwórz Plik". Po otwarciu i przetworzeniu pliku zapisz go guzikiem "Zapisz Plik"')
+        opis = QLabel('Jeśli potrzebujesz pomocy kliknij na górze guzik o nazwie <b>"Pomoc"</b>, jeśli chcesz załadować plik i zacząć go przetwarzać kliknij <b>"Otwórz Plik"</b>. Po otwarciu i przetworzeniu pliku zapisz go guzikiem <b>"Zapisz Plik"</b>')
         opis.setStyleSheet("""
             font-size: 20px;
             text-align: justify;
@@ -391,6 +397,7 @@ class MainWindow(QMainWindow):
         if self.window_help is None:
             self.window_help = HelpWindow()
             self.window_help.closeEvent = lambda event: (cleanup(),event.accept())
+            self.switch_modes(self.theme)
             self.window_help.show()
         else:
             self.window_help.raise_()
@@ -540,44 +547,46 @@ class MainWindow(QMainWindow):
                     background-color: #DDDDDD;
                 }
         """
+        self.theme = dark_mode
 
-        if dark_mode:
-            self.setStyleSheet(dark_mode_css)
-            if self.window_help is not None:
-                self.setStyleSheet(dark_mode_css)
-        else:
-            self.setStyleSheet(white_mode_css)
-            if self.window_help is not None:
-                self.setStyleSheet(white_mode_css)
-        if QSysInfo.productType() == 'windows':
-            try:
-                hwnd = self.winId()  # Get window handle
+        windows_to_switch = [self,self.window_help]
+        for window in windows_to_switch:
+            if window is None:
+                continue
 
-                # Define the attributes for DWM (Desktop Window Manager)
-                DWMWA_USE_IMMERSIVE_DARK_MODE = 20  # Dark mode title bar
-                DWMWA_CAPTION_COLOR = 35  # Title bar color
-                DWMWA_TEXT_COLOR = 36  # Title text color
+            if dark_mode:
+                window.setStyleSheet(dark_mode_css)
+            else:
+                window.setStyleSheet(white_mode_css)
+            if QSysInfo.productType() == 'windows':
+                try:
+                    hwnd = window.winId()  # Get window handle
 
-                # Convert dark mode flag to ctypes
-                dark_mode_flag = ctypes.c_int(1 if dark_mode else 0)
+                    # Define the attributes for DWM (Desktop Window Manager)
+                    DWMWA_USE_IMMERSIVE_DARK_MODE = 20  # Dark mode title bar
+                    DWMWA_CAPTION_COLOR = 35  # Title bar color
+                    DWMWA_TEXT_COLOR = 36  # Title text color
 
-                # Set dark/light mode
-                ctypes.windll.dwmapi.DwmSetWindowAttribute(
-                    hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ctypes.byref(dark_mode_flag), ctypes.sizeof(dark_mode_flag)
-                )
+                    # Convert dark mode flag to ctypes
+                    dark_mode_flag = ctypes.c_int(1 if dark_mode else 0)
 
-                # Set custom title bar color (only works when `DWMWA_USE_IMMERSIVE_DARK_MODE` is enabled)
-                title_bar_color = 0x4d4d4d if dark_mode else 0xFFFFFF  # Dark or white
-                ctypes.windll.dwmapi.DwmSetWindowAttribute(
-                    hwnd, DWMWA_CAPTION_COLOR, ctypes.byref(ctypes.c_int(title_bar_color)), 4
-                )
+                    # Set dark/light mode
+                    ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                        hwnd, DWMWA_USE_IMMERSIVE_DARK_MODE, ctypes.byref(dark_mode_flag), ctypes.sizeof(dark_mode_flag)
+                    )
 
-                # Set title text color (optional)
-                text_color = 0xFFFFFF if dark_mode else 0x000000
-                ctypes.windll.dwmapi.DwmSetWindowAttribute(
-                    hwnd, DWMWA_TEXT_COLOR, ctypes.byref(ctypes.c_int(text_color)), 4)
-            except Exception as e:
-                print("Something wrong with windows native color changing for toolbars")
+                    # Set custom title bar color (only works when `DWMWA_USE_IMMERSIVE_DARK_MODE` is enabled)
+                    title_bar_color = 0x4d4d4d if dark_mode else 0xFFFFFF  # Dark or white
+                    ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                        hwnd, DWMWA_CAPTION_COLOR, ctypes.byref(ctypes.c_int(title_bar_color)), 4
+                    )
+
+                    # Set title text color (optional)
+                    text_color = 0xFFFFFF if dark_mode else 0x000000
+                    ctypes.windll.dwmapi.DwmSetWindowAttribute(
+                        hwnd, DWMWA_TEXT_COLOR, ctypes.byref(ctypes.c_int(text_color)), 4)
+                except Exception as e:
+                    print("Something wrong with windows native color changing for toolbars")
 
 if __name__ == '__main__':
     app = QApplication([])
