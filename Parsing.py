@@ -150,6 +150,6 @@ def edit_excel(workbook,i_mama, i_mail, i_r1, i_r2, i_r3, mode):
     return newWorkBook
 
 if __name__ == "__main__":
-    workbook = load_workbook("./tests/test.xlsx")
-    edited_workbook = edit_excel(workbook, i_mama=4, i_mail=6, i_r1=8, i_r2=9, i_r3=10)
+    workbook = load_workbook("tests/test_parsing.xlsx")
+    edited_workbook = edit_excel(workbook, i_mama=4, i_mail=6, i_r1=8, i_r2=9, i_r3=10,mode=0)
     edited_workbook.save("./testy_parsing.xlsx")

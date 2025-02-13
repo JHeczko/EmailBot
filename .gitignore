@@ -7,6 +7,3 @@
 *.pyz
 *.xlsx#
 *.zip
-test.*
-./tests/*
-/tests/*.xlsx
