@@ -4,12 +4,12 @@ from openpyxl import Workbook,load_workbook
 from openpyxl.styles import Font, Alignment, PatternFill
 
 
-def edit_excel(workbook,i_mama, i_mail, i_r1, i_r2, i_r3, i_r4=None, i_r5 = None, i_r6=None, mode=0):
+def edit_excel(workbook,i_mama, i_mail, i_r1, i_r2, i_r3, mode):
     '''
     basicly a heart of a program which preprocess a excel files(processing logic here). Also it can work in 3 modes:
 
-    * NAME SURNAME: first name and then surname
-    * SURNAME NAME: first surname and then name
+    * NAME SURNAME(mode 0): first name and then surname
+    * SURNAME NAME(mode 1): first surname and then name
 
     :param workbook:
     :param i_mama: index of name and surname of Mum inside a excel table

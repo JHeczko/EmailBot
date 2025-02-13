@@ -129,6 +129,7 @@ class MainWindow(QMainWindow):
         self.labels = []
         self.info_labels = ["Imie i Nazwisko Mamy", "Mail", "3-30 dni", "31-60 dni", "61-365 dni"]
         self.comboboxes = []
+        self.combo_mode = None
         self.file_name = QLabel('')
         self.window_help = None
         self.theme = 0 # does not matter what value here it will be set later
@@ -220,9 +221,9 @@ class MainWindow(QMainWindow):
 
         for name in self.info_labels:
             temp_lay = QVBoxLayout()
-            temp_lay.addWidget(QLabel(name))
+            temp_lay.addWidget(QLabel(f"<h2>{name}</h2>"))
 
-            temp_lay.setAlignment(Qt.AlignmentFlag.AlignCenter)
+            temp_lay.setAlignment(Qt.AlignmentFlag.AlignTop)
             temp_lay.setContentsMargins(30, 30, 30, 30)
             temp_lay.setSpacing(10)
 
@@ -230,6 +231,13 @@ class MainWindow(QMainWindow):
             combobox_temp.addItems(self.labels)
             temp_lay.addWidget(combobox_temp)
             self.comboboxes.append(combobox_temp)
+
+            if name == "Imie i Nazwisko Mamy":
+                temp_lay.addWidget(QLabel("<h3>Tryb przetwarzania</h3>"))
+                self.combo_mode = QComboBox()
+                self.combo_mode.addItems(["IMIE NAZWISKO", "NAZWISKO IMIE"])
+                self.combo_mode.setCurrentIndex(0)
+                temp_lay.addWidget(self.combo_mode)
 
             window2_layout_combobox.addLayout(temp_lay)
 
@@ -313,7 +321,7 @@ class MainWindow(QMainWindow):
             try:
                 self.workbook = load_workbook(path)
                 self.labels = [x.value for x in self.workbook.active[1]]
-                self.file_name.setText(f"Praca na pliku: \"{os.path.basename(path)}\"")
+                self.file_name.setText(f"<h1>Praca na pliku: \"{os.path.basename(path)}\"</h1>")
 
                 self.main_stack.setCurrentWidget(self.window2)
                 for combobox in self.comboboxes:
@@ -384,6 +392,9 @@ class MainWindow(QMainWindow):
             indexes = []
             for box in self.comboboxes:
                 indexes.append(box.currentIndex())
+            indexes.append(self.combo_mode.currentIndex())
+            print(indexes)
+
             self.workbook_edited = edit_excel(self.workbook, *indexes)
             self.main_stack.setCurrentWidget(self.window3)
         except Exception as e:
@@ -403,6 +414,11 @@ class MainWindow(QMainWindow):
             self.window_help.raise_()
 
     def switch_modes(self,dark_mode):
+        '''
+        Despite switching modes, it also add style to elements in case of widnows users
+        :param dark_mode: mode if 0 then light theme will be set if 1 then dark theme is being setted
+        :return: None
+        '''
         dark_mode_css = """
             QMainWindow {
                 background-color: #242424;
@@ -415,14 +431,14 @@ class MainWindow(QMainWindow):
             QPushButton{
                 background-color: #212121;
                 color: #FFFFFF;
-                padding: 3px;
+                padding: 6px;
                 border: 2px solid #404040;
                 float:left;
             }
             QPushButton:hover{
                 background-color: #aba7ab;
                 color: #212121;
-                padding: 3px;
+                padding: 6px;
                 border: 2px solid #919191;
                 float:left;
             }
