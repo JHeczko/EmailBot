@@ -1,11 +1,10 @@
 import ctypes
 import os.path
 
-import openpyxl
 from openpyxl import load_workbook
-from PySide6.QtCore import Qt, QSysInfo, QTranslator, QLocale, QLibraryInfo
+from PySide6.QtCore import Qt, QSysInfo
 from PySide6.QtGui import QIcon, QPixmap, QAction
-from PySide6.QtWidgets import QWidget, QApplication, QMainWindow, QFileDialog, QMessageBox, QStackedLayout, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton, QToolButton
+from PySide6.QtWidgets import QWidget, QMainWindow, QFileDialog, QMessageBox, QStackedLayout, QVBoxLayout, QHBoxLayout, QLabel, QComboBox, QPushButton, QToolButton
 from Parsing import edit_excel
 
 class HelpWindow(QWidget):
@@ -124,8 +123,8 @@ class MainWindow(QMainWindow):
         super().__init__()
 
         # initailizing all local variables needed for workflow of program
-        self.workbook : openpyxl.Workbook = None
-        self.workbook_edited : openpyxl.Workbook= None
+        self.workbook = None
+        self.workbook_edited = None
         self.labels = []
         self.info_labels = ["Imie i Nazwisko Mamy", "Mail", "3-30 dni", "31-60 dni", "61-365 dni"]
         self.comboboxes = []
@@ -393,7 +392,6 @@ class MainWindow(QMainWindow):
             for box in self.comboboxes:
                 indexes.append(box.currentIndex())
             indexes.append(self.combo_mode.currentIndex())
-            print(indexes)
 
             self.workbook_edited = edit_excel(self.workbook, *indexes)
             self.main_stack.setCurrentWidget(self.window3)
@@ -436,6 +434,21 @@ class MainWindow(QMainWindow):
                 float:left;
             }
             QPushButton:hover{
+                background-color: #aba7ab;
+                color: #212121;
+                padding: 6px;
+                border: 2px solid #919191;
+                float:left;
+            }
+            
+            QToolButton{
+                background-color: #212121;
+                color: #FFFFFF;
+                padding: 6px;
+                border: 2px solid #404040;
+                float:left;
+            }
+            QToolButton:hover{
                 background-color: #aba7ab;
                 color: #212121;
                 padding: 6px;
@@ -603,12 +616,3 @@ class MainWindow(QMainWindow):
                         hwnd, DWMWA_TEXT_COLOR, ctypes.byref(ctypes.c_int(text_color)), 4)
                 except Exception as e:
                     print("Something wrong with windows native color changing for toolbars")
-
-if __name__ == '__main__':
-    app = QApplication([])
-    translator = QTranslator()
-    if translator.load(QLocale("pl_PL"), "qtbase", "_", QLibraryInfo.location(QLibraryInfo.TranslationsPath)):
-        app.installTranslator(translator)
-    window = MainWindow()
-    window.show()
-    app.exec()

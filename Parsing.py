@@ -17,9 +17,6 @@ def edit_excel(workbook,i_mama, i_mail, i_r1, i_r2, i_r3, mode):
     :param i_r1: index of first interval of payment
     :param i_r2: index of second interval of payment
     :param i_r3: index of third interval of payment
-    :param i_r4: index of fourth interval of payment
-    :param i_r5: index of fifth interval of payment
-    :param i_r6: index of sixth interval of payment
     :param mode: how to process names and surnames, explained at the top
     :return: processed and nicely colored workbook
     '''

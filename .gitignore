@@ -5,5 +5,6 @@
 *.pkg
 *.spec
 *.pyz
-*.xlsx#
 *.zip
+./build/*
+./dist
