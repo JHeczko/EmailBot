@@ -4,25 +4,28 @@ from openpyxl import Workbook,load_workbook
 from openpyxl.styles import Font, Alignment, PatternFill
 
 
-def edit_excel(workbook,i_mama, i_mail, i_r1, i_r2, i_r3, mode):
+def edit_excel(workbook,mode,i_mama, i_mail, i_r1, i_r2, i_r3, *argv):
     '''
     basicly a heart of a program which preprocess a excel files(processing logic here). Also it can work in 3 modes:
 
     * NAME SURNAME(mode 0): first name and then surname
     * SURNAME NAME(mode 1): first surname and then name
 
-    :param workbook:
+    :param workbook: a workbook to be processed
+    :param mode: how to process names and surnames, explained at the top
     :param i_mama: index of name and surname of Mum inside a excel table
     :param i_mail: index of mail
     :param i_r1: index of first interval of payment
     :param i_r2: index of second interval of payment
     :param i_r3: index of third interval of payment
-    :param mode: how to process names and surnames, explained at the top
+    :param *argv: other interval of payments to be processed
     :return: processed and nicely colored workbook
     '''
     newWorkBook = Workbook()
     newSheet = newWorkBook.active
     sheet = workbook.active  # Pobieramy aktywny arkusz
+
+    print()
 
     # tablice oparte o Imie oraz nazwiska mamy
     hashImieR1 = {}
@@ -42,6 +45,7 @@ def edit_excel(workbook,i_mama, i_mail, i_r1, i_r2, i_r3, mode):
             mama = 'nieznany_rodzic'
 
         mail = row[i_mail].translate(str.maketrans('','', string.whitespace)) if row[i_mail] is not None else ''
+
         moneyR1 = int(row[i_r1]) if row[i_r1] is not None else 0
         moneyR2 = int(row[i_r2]) if row[i_r2] is not None else 0
         moneyR3 = int(row[i_r3]) if row[i_r3] is not None else 0
@@ -148,5 +152,5 @@ def edit_excel(workbook,i_mama, i_mail, i_r1, i_r2, i_r3, mode):
 
 if __name__ == "__main__":
     workbook = load_workbook("tests/test_parsing.xlsx")
-    edited_workbook = edit_excel(workbook, i_mama=4, i_mail=6, i_r1=8, i_r2=9, i_r3=10,mode=0)
+    edited_workbook = edit_excel(workbook, mode=0,i_mama=4, i_mail=6, i_r1=8, i_r2=9, i_r3=10)
     edited_workbook.save("./testy_parsing.xlsx")

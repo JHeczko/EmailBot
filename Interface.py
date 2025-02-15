@@ -125,11 +125,16 @@ class MainWindow(QMainWindow):
         # initailizing all local variables needed for workflow of program
         self.workbook = None
         self.workbook_edited = None
+
         self.labels = []
         self.info_labels = ["Imie i Nazwisko Mamy", "Mail", "3-30 dni", "31-60 dni", "61-365 dni"]
+
         self.comboboxes = []
+        self.addt_comboboxes = []
         self.combo_mode = None
+
         self.file_name = QLabel('')
+
         self.window_help = None
         self.theme = 0 # does not matter what value here it will be set later
 
@@ -207,20 +212,22 @@ class MainWindow(QMainWindow):
         self.window2 = QWidget()
         window2_layout = QVBoxLayout()
         window2_layout.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.window2.setLayout(window2_layout)
 
         # adding text with file name
         window2_layout.addWidget(self.file_name)
 
         # making sequence of comboboxes
-        window2_layout_combobox = QHBoxLayout()
-        window2_layout_combobox.setAlignment(Qt.AlignmentFlag.AlignCenter)
+        self.window2_layout_combobox = QHBoxLayout()
+        self.window2_layout_combobox.setAlignment(Qt.AlignmentFlag.AlignCenter)
 
-        window2_layout.addLayout(window2_layout_combobox)
-        self.window2.setLayout(window2_layout)
+        window2_layout.addLayout(self.window2_layout_combobox)
 
         for name in self.info_labels:
             temp_lay = QVBoxLayout()
-            temp_lay.addWidget(QLabel(f"<h2>{name}</h2>"))
+
+            header = QLabel(f"<h3>{name}</h3>")
+            temp_lay.addWidget(header)
 
             temp_lay.setAlignment(Qt.AlignmentFlag.AlignTop)
             temp_lay.setContentsMargins(30, 30, 30, 30)
@@ -238,9 +245,28 @@ class MainWindow(QMainWindow):
                 self.combo_mode.setCurrentIndex(0)
                 temp_lay.addWidget(self.combo_mode)
 
-            window2_layout_combobox.addLayout(temp_lay)
+            self.window2_layout_combobox.addLayout(temp_lay)
 
-        # buttons for navigation
+        # buttons for adding additional intervals if needed
+        # names getting crazy btw
+        window2_layout_combobox_buttons = QVBoxLayout()
+        window2_layout_combobox_buttons.setAlignment(Qt.AlignmentFlag.AlignCenter)
+
+        button_add = QPushButton("Dodaj okres")
+        button_remove = QPushButton("Usuń okres")
+        button_clear = QPushButton("Wyczyść")
+
+        button_add.clicked.connect(self.add_interval)
+        button_remove.clicked.connect(self.remove_interval)
+        button_clear.clicked.connect(self.clear_interval)
+
+        window2_layout_combobox_buttons.addWidget(button_add)
+        window2_layout_combobox_buttons.addWidget(button_remove)
+        window2_layout_combobox_buttons.addWidget(button_clear)
+
+        self.window2_layout_combobox.addLayout(window2_layout_combobox_buttons)
+
+        # buttons for navigation/processing
         window2_layout_button = QHBoxLayout()
         window2_layout_button.setAlignment(Qt.AlignmentFlag.AlignCenter)
         button_next = QPushButton()
@@ -288,7 +314,7 @@ class MainWindow(QMainWindow):
         self.main_stack.addWidget(self.window2)
         self.main_stack.addWidget(self.window3)
 
-        self.main_stack.setCurrentWidget(self.window1)
+        self.main_stack.setCurrentWidget(self.window2)
 
     def file_open(self):
         '''
@@ -322,6 +348,7 @@ class MainWindow(QMainWindow):
                 self.labels = [x.value for x in self.workbook.active[1]]
                 self.file_name.setText(f"<h1>Praca na pliku: \"{os.path.basename(path)}\"</h1>")
 
+                self.clear_interval()
                 self.main_stack.setCurrentWidget(self.window2)
                 for combobox in self.comboboxes:
                     combobox.clear()
@@ -391,9 +418,14 @@ class MainWindow(QMainWindow):
             indexes = []
             for box in self.comboboxes:
                 indexes.append(box.currentIndex())
-            indexes.append(self.combo_mode.currentIndex())
 
-            self.workbook_edited = edit_excel(self.workbook, *indexes)
+            opt_indexes = []
+            for box in self.addt_comboboxes:
+                opt_indexes.append(box.currentIndex())
+
+            mode_opt = self.combo_mode.currentIndex()
+            # for now there should be at least 3 intervals, may change that later, for now 3 at least
+            self.workbook_edited = edit_excel(self.workbook, mode=mode_opt,i_mama=indexes[0], i_mail=indexes[1],i_r1=indexes[2],i_r2=indexes[3], i_r3=indexes[4], *opt_indexes)
             self.main_stack.setCurrentWidget(self.window3)
         except Exception as e:
             self.back_button()
@@ -406,10 +438,60 @@ class MainWindow(QMainWindow):
         if self.window_help is None:
             self.window_help = HelpWindow()
             self.window_help.closeEvent = lambda event: (cleanup(),event.accept())
-            self.switch_modes(self.theme)
+            if QSysInfo.productType() != "macos":
+                self.switch_modes(self.theme)
             self.window_help.show()
         else:
             self.window_help.raise_()
+
+    def add_interval(self):
+        temp_lay = QVBoxLayout()
+
+        header = QLabel(f"<h3>Add {len(self.addt_comboboxes)+1}</h3>")
+        header.setWordWrap(True)
+        temp_lay.addWidget(header)
+
+        temp_lay.setAlignment(Qt.AlignmentFlag.AlignTop)
+        temp_lay.setContentsMargins(30, 30, 30, 30)
+        temp_lay.setSpacing(10)
+
+        combobox_temp = QComboBox()
+        combobox_temp.addItems(self.labels)
+        temp_lay.addWidget(combobox_temp)
+
+        self.addt_comboboxes.append(combobox_temp)
+        self.window2_layout_combobox.insertLayout(self.window2_layout_combobox.count()-1, temp_lay)
+
+
+    def remove_interval(self):
+        if len(self.addt_comboboxes) != 0:
+
+            layout: QVBoxLayout = self.window2_layout_combobox.itemAt(self.window2_layout_combobox.count()-2)
+
+            self.addt_comboboxes.pop()
+
+            while layout.count():  # Loop through all items
+                item = layout.takeAt(0)
+
+                if item.widget():  # If item is a widget
+                    widget = item.widget()
+                    widget.setParent(None)  # Detach from UI
+                    widget.deleteLater()  # Mark for deletion
+
+                # Remove layout from parent
+            if layout.parent():
+                layout.parent().layout().removeItem(layout)
+
+            layout.deleteLater()  # Mark layout for deletion
+
+    def clear_interval(self):
+        while len(self.addt_comboboxes) != 0:
+            self.remove_interval()
+
+        for combobox in self.comboboxes:
+            combobox.setCurrentIndex(0)
+
+        self.combo_mode.setCurrentIndex(0)
 
     def switch_modes(self,dark_mode):
         '''
@@ -505,76 +587,76 @@ class MainWindow(QMainWindow):
            }
         """
         white_mode_css = """
-                QMainWindow {
-                    background-color: #F5F5F5;
-                }
-                
-                QWidget {
-                    background-color: #F5F5F5;
-                    color: #212121;
-                }
-                
-                QPushButton {
-                    background-color: #E0E0E0;
-                    color: #212121;
-                    padding: 3px;
-                    border: 2px solid #B0B0B0;
-                    float: left;
-                }
-                QPushButton:hover {
-                    background-color: #D6D6D6;
-                    color: #000000;
-                    padding: 3px;
-                    border: 2px solid #8E8E8E;
-                    float: left;
-                }
-                
-                QComboBox {
-                    background-color: #FFFFFF;
-                    color: black;
-                    border: 1px solid #AAAAAA;
-                    padding: 5px;
-                }
-                QComboBox::drop-down {
-                    border: none;
-                    background: #DDDDDD;
-                    color: black;
-                }
-                QComboBox QAbstractItemView {
-                    background-color: #FFFFFF;
-                    color: black;
-                    selection-background-color: #DDDDDD;
-                }
-                QComboBox QAbstractItemView::item:hover,
-                QComboBox QAbstractItemView::item:selected {
-                    background-color: #C0C0C0;
-                    color: black;
-                }
-                
-                QMenuBar {
-                    background-color: #E0E0E0;
-                }
-                QMenuBar::item {
-                    padding: 3px 15px;
-                    width: 100%;
-                    float: left;
-                }
-                QMenuBar::item:selected { /* when selected using mouse or keyboard */
-                    background: #C0C0C0;
-                    color: black;
-                }
-                
-                QMenu {
-                    background-color: #FFFFFF;
-                    border: 1px solid #AAAAAA;
-                }
-                QMenu::item {
-                    padding: 6px 20px;
-                    color: black;
-                }
-                QMenu::item:selected {
-                    background-color: #DDDDDD;
-                }
+            QMainWindow {
+                background-color: #F5F5F5;
+            }
+            
+            QWidget {
+                background-color: #F5F5F5;
+                color: #212121;
+            }
+            
+            QPushButton {
+                background-color: #E0E0E0;
+                color: #212121;
+                padding: 3px;
+                border: 2px solid #B0B0B0;
+                float: left;
+            }
+            QPushButton:hover {
+                background-color: #D6D6D6;
+                color: #000000;
+                padding: 3px;
+                border: 2px solid #8E8E8E;
+                float: left;
+            }
+            
+            QComboBox {
+                background-color: #FFFFFF;
+                color: black;
+                border: 1px solid #AAAAAA;
+                padding: 5px;
+            }
+            QComboBox::drop-down {
+                border: none;
+                background: #DDDDDD;
+                color: black;
+            }
+            QComboBox QAbstractItemView {
+                background-color: #FFFFFF;
+                color: black;
+                selection-background-color: #DDDDDD;
+            }
+            QComboBox QAbstractItemView::item:hover,
+            QComboBox QAbstractItemView::item:selected {
+                background-color: #C0C0C0;
+                color: black;
+            }
+            
+            QMenuBar {
+                background-color: #E0E0E0;
+            }
+            QMenuBar::item {
+                padding: 3px 15px;
+                width: 100%;
+                float: left;
+            }
+            QMenuBar::item:selected { /* when selected using mouse or keyboard */
+                background: #C0C0C0;
+                color: black;
+            }
+            
+            QMenu {
+                background-color: #FFFFFF;
+                border: 1px solid #AAAAAA;
+            }
+            QMenu::item {
+                padding: 6px 20px;
+                color: black;
+            }
+            QMenu::item:selected {
+                background-color: #DDDDDD;
+            }
         """
         self.theme = dark_mode
 
