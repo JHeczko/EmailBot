@@ -4,7 +4,7 @@ from openpyxl import Workbook,load_workbook
 from openpyxl.styles import Font, Alignment, PatternFill
 
 
-def edit_excel(workbook,mode,i_mama, i_mail, i_r1, i_r2, i_r3, *argv):
+def edit_excel(workbook,mode,i_mama, i_mail, i_r1, i_r2, i_r3, opt_indexes):
     '''
     basicly a heart of a program which preprocess a excel files(processing logic here). Also it can work in 3 modes:
 
@@ -24,8 +24,6 @@ def edit_excel(workbook,mode,i_mama, i_mail, i_r1, i_r2, i_r3, *argv):
     newWorkBook = Workbook()
     newSheet = newWorkBook.active
     sheet = workbook.active  # Pobieramy aktywny arkusz
-
-    print()
 
     # tablice oparte o Imie oraz nazwiska mamy
     hashImieR1 = {}
