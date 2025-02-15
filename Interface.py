@@ -314,7 +314,7 @@ class MainWindow(QMainWindow):
         self.main_stack.addWidget(self.window2)
         self.main_stack.addWidget(self.window3)
 
-        self.main_stack.setCurrentWidget(self.window2)
+        self.main_stack.setCurrentWidget(self.window1)
 
     def file_open(self):
         '''
@@ -425,7 +425,7 @@ class MainWindow(QMainWindow):
 
             mode_opt = self.combo_mode.currentIndex()
             # for now there should be at least 3 intervals, may change that later, for now 3 at least
-            self.workbook_edited = edit_excel(self.workbook, mode=mode_opt,i_mama=indexes[0], i_mail=indexes[1],i_r1=indexes[2],i_r2=indexes[3], i_r3=indexes[4], *opt_indexes)
+            self.workbook_edited = edit_excel(self.workbook, mode=mode_opt,i_mama=indexes[0], i_mail=indexes[1],i_r1=indexes[2],i_r2=indexes[3], i_r3=indexes[4], opt_indexes=opt_indexes)
             self.main_stack.setCurrentWidget(self.window3)
         except Exception as e:
             self.back_button()
