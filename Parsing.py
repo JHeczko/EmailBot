@@ -161,4 +161,4 @@ def edit_excel(workbook,mode,i_mama, i_mail, i_r1, i_r2, i_r3, opt_indexes):
 if __name__ == "__main__":
     workbook = load_workbook("tests/test_parsing.xlsx")
     edited_workbook = edit_excel(workbook= workbook, mode=0,i_mama=4, i_mail=6, i_r1=8, i_r2=9, i_r3=10, opt_indexes=[11,12,13])
-    edited_workbook.save("./testy_parsing.xlsx")
+    edited_workbook.save("./testy_parser.xlsx")

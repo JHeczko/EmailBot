@@ -9,3 +9,4 @@
 ./build/*
 ./dist
 test.py
+testy_parser.xlsx
