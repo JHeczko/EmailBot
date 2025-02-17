@@ -18,7 +18,7 @@ def edit_excel(workbook,mode,i_mama, i_mail, i_r1, i_r2, i_r3, opt_indexes):
     :param i_r1: index of first interval of payment
     :param i_r2: index of second interval of payment
     :param i_r3: index of third interval of payment
-    :param *argv: other interval of payments to be processed
+    :param opt_indexes: other interval of payments to be processed
     :return: processed and nicely colored workbook
     '''
     newWorkBook = Workbook()
@@ -29,13 +29,14 @@ def edit_excel(workbook,mode,i_mama, i_mail, i_r1, i_r2, i_r3, opt_indexes):
     hashImieR1 = {}
     hashImieR2 = {}
     hashImieR3 = {}
+    hashImieRn = []
     hashImieALL = {}
+
     hashImieMail = {}
     hashImieIlosc = {}
 
     # =-=-=-=-=-=-=-=-=SORTING DATA FROM OLD WORKBOOK=-=-=-=-=-=-=-=-=
     for row in sheet.iter_rows(min_row=2,min_col=0, values_only=True):
-        #mama = row[i_mama] if row[i_mama] is not None else 'nieznany_rodzic'
         mama = row[i_mama]
         if row[i_mama] is None:
             mama = 'nieznany_rodzic'
@@ -68,12 +69,15 @@ def edit_excel(workbook,mode,i_mama, i_mail, i_r1, i_r2, i_r3, opt_indexes):
         else:
             hashImieALL[mama] = moneyAll
 
+        # adding a child to a specific mama
         if mama in hashImieIlosc:
             hashImieIlosc[mama] += 1
         else:
             hashImieIlosc[mama] = 1
 
-        hashImieMail[mama] = mail
+        # adding a mail to a specific mama(cuz all mail should be the same so it doesnt really matter here)
+        if mama not in hashImieMail:
+            hashImieMail[mama] = mail
 
     # =-=-=-=-=-=-=-=-=STYLING AND FILLING NEW WORKBOOK=-=-=-=-=-=-=-=-=
 
@@ -150,5 +154,5 @@ def edit_excel(workbook,mode,i_mama, i_mail, i_r1, i_r2, i_r3, opt_indexes):
 
 if __name__ == "__main__":
     workbook = load_workbook("tests/test_parsing.xlsx")
-    edited_workbook = edit_excel(workbook, mode=0,i_mama=4, i_mail=6, i_r1=8, i_r2=9, i_r3=10)
+    edited_workbook = edit_excel(workbook= workbook, mode=0,i_mama=4, i_mail=6, i_r1=8, i_r2=9, i_r3=10, opt_indexes=[11,12,13])
     edited_workbook.save("./testy_parsing.xlsx")
