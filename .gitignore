@@ -8,3 +8,4 @@
 *.zip
 ./build/*
 ./dist
+test.py

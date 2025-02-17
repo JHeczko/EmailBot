@@ -25,11 +25,13 @@ def edit_excel(workbook,mode,i_mama, i_mail, i_r1, i_r2, i_r3, opt_indexes):
     newSheet = newWorkBook.active
     sheet = workbook.active  # Pobieramy aktywny arkusz
 
-    # tablice oparte o Imie oraz nazwiska mamy
-    hashImieR1 = {}
-    hashImieR2 = {}
-    hashImieR3 = {}
-    hashImieRn = []
+    # idexes of all money column
+    r_indexes = [i_r1, i_r2, i_r3]
+    r_indexes.extend(opt_indexes)
+
+    # hashmaps based on name and surname of a person(expecting mother or father not kids)
+    hashImieRn = [{} for _ in r_indexes]
+    print(hashImieRn)
     hashImieALL = {}
 
     hashImieMail = {}
@@ -45,29 +47,24 @@ def edit_excel(workbook,mode,i_mama, i_mail, i_r1, i_r2, i_r3, opt_indexes):
 
         mail = row[i_mail].translate(str.maketrans('','', string.whitespace)) if row[i_mail] is not None else ''
 
-        moneyR1 = int(row[i_r1]) if row[i_r1] is not None else 0
-        moneyR2 = int(row[i_r2]) if row[i_r2] is not None else 0
-        moneyR3 = int(row[i_r3]) if row[i_r3] is not None else 0
-        moneyAll = moneyR1 + moneyR2 + moneyR3
-        if mama in hashImieR1:
-            hashImieR1[mama] += moneyR1
-        else:
-            hashImieR1[mama] = moneyR1
+        moneyALL = 0
+        # iterate through every hashmap for every nterval and add a specific value to a mum index
+        print(f"mama: {mama}")
+        for i_r, hashImie in zip(r_indexes, hashImieRn):
+            moneyRn = int(row[i_r]) if row[i_r] is not None else 0
+            moneyALL += moneyRn
+            print(moneyRn)
+            if mama in hashImie:
+                hashImie[mama] += moneyRn
+            else:
+                hashImie[mama] = moneyRn
 
-        if mama in hashImieR2:
-            hashImieR2[mama] += moneyR2
-        else:
-            hashImieR2[mama] = moneyR2
-
-        if mama in hashImieR3:
-            hashImieR3[mama] += moneyR3
-        else:
-            hashImieR3[mama] = moneyR3
-
+        print(f"ALL: {moneyALL}")
         if mama in hashImieALL:
-            hashImieALL[mama] += moneyAll
+            hashImieALL[mama] += moneyALL
         else:
-            hashImieALL[mama] = moneyAll
+            hashImieALL[mama] = moneyALL
+        print(f"ALL: {hashImieALL}")
 
         # adding a child to a specific mama
         if mama in hashImieIlosc:
@@ -80,7 +77,6 @@ def edit_excel(workbook,mode,i_mama, i_mail, i_r1, i_r2, i_r3, opt_indexes):
             hashImieMail[mama] = mail
 
     # =-=-=-=-=-=-=-=-=STYLING AND FILLING NEW WORKBOOK=-=-=-=-=-=-=-=-=
-
     # ============Styling============
     header_font = Font(bold=True)
     header_alignment = Alignment(horizontal='center', vertical='center')
@@ -89,7 +85,10 @@ def edit_excel(workbook,mode,i_mama, i_mail, i_r1, i_r2, i_r3, opt_indexes):
 
 
     # ============Header creation============
-    headers = ['Zwrot','Nazwisko', 'Mail', 'Ilość Dzieci', 'R1', 'R2', 'R3', 'All']
+    headers = ['Zwrot','Nazwisko', 'Mail', 'Ilość Dzieci']
+    headers.extend([f"R{i}" for i,_ in enumerate(r_indexes,1)])
+    headers.append('ALL')
+    print(headers)
     for col_num, header in enumerate(headers, start=1):
         cell = newSheet.cell(row=1, column=col_num, value=header)
         cell.font = header_font
@@ -118,23 +117,25 @@ def edit_excel(workbook,mode,i_mama, i_mail, i_r1, i_r2, i_r3, opt_indexes):
         newSheet.cell(row=row, column=2, value=nazwiskoMama if mama!="nieznany_rodzic" else "Nie znaleziono mamy!")
         newSheet.cell(row=row, column=3, value= mailMama if mama!="nieznany_rodzic" else "Uzupelnij dane o imie oraz nazwisko mamy")
         newSheet.cell(row=row, column=4, value=hashImieIlosc[mama])
-        newSheet.cell(row=row, column=5, value=hashImieR1[mama]).number_format = '#,##0.00 "zł"'
-        newSheet.cell(row=row, column=6, value=hashImieR2[mama]).number_format = '#,##0.00 "zł"'
-        newSheet.cell(row=row, column=7, value=hashImieR3[mama]).number_format = '#,##0.00 "zł"'
-        newSheet.cell(row=row, column=8, value=hashImieALL[mama]).number_format = '#,##0.00 "zł"'
+
+        col_all = 0
+        for col,hashImie in enumerate(hashImieRn,5):
+            newSheet.cell(row=row, column=col, value=hashImie[mama]).number_format = '#,##0.00 "zł"'
+            col_all = col + 1
+        newSheet.cell(row=row, column=col_all, value=hashImieALL[mama]).number_format = '#,##0.00 "zł"'
         row += 1
 
     # ============Styling============
     row = 2
     for mama in hashImieMail.keys():
-        for i in range(1,9):
+        for i in range(1,len(headers)+1):
             if row % 2 != 0:
                 newSheet.cell(row=row, column=i).fill = light_gray_fill
         row += 1
 
     row = 2
     for mama in hashImieMail.keys():
-        for i in range(1,9):
+        for i in range(1,len(headers)+1):
             newSheet.cell(row=row, column=i).alignment = cell_alignment
         row += 1
 
