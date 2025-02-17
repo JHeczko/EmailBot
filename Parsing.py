@@ -31,7 +31,6 @@ def edit_excel(workbook,mode,i_mama, i_mail, i_r1, i_r2, i_r3, opt_indexes):
 
     # hashmaps based on name and surname of a person(expecting mother or father not kids)
     hashImieRn = [{} for _ in r_indexes]
-    print(hashImieRn)
     hashImieALL = {}
 
     hashImieMail = {}
@@ -49,22 +48,18 @@ def edit_excel(workbook,mode,i_mama, i_mail, i_r1, i_r2, i_r3, opt_indexes):
 
         moneyALL = 0
         # iterate through every hashmap for every nterval and add a specific value to a mum index
-        print(f"mama: {mama}")
         for i_r, hashImie in zip(r_indexes, hashImieRn):
             moneyRn = int(row[i_r]) if row[i_r] is not None else 0
             moneyALL += moneyRn
-            print(moneyRn)
             if mama in hashImie:
                 hashImie[mama] += moneyRn
             else:
                 hashImie[mama] = moneyRn
 
-        print(f"ALL: {moneyALL}")
         if mama in hashImieALL:
             hashImieALL[mama] += moneyALL
         else:
             hashImieALL[mama] = moneyALL
-        print(f"ALL: {hashImieALL}")
 
         # adding a child to a specific mama
         if mama in hashImieIlosc:
@@ -85,10 +80,9 @@ def edit_excel(workbook,mode,i_mama, i_mail, i_r1, i_r2, i_r3, opt_indexes):
 
 
     # ============Header creation============
-    headers = ['Zwrot','Nazwisko', 'Mail', 'Ilość Dzieci']
+    headers = ['Zwrot','Nazwisko', 'Mail1','Mail2', 'Ilość Dzieci']
     headers.extend([f"R{i}" for i,_ in enumerate(r_indexes,1)])
     headers.append('ALL')
-    print(headers)
     for col_num, header in enumerate(headers, start=1):
         cell = newSheet.cell(row=1, column=col_num, value=header)
         cell.font = header_font
@@ -110,16 +104,27 @@ def edit_excel(workbook,mode,i_mama, i_mail, i_r1, i_r2, i_r3, opt_indexes):
             nazwiskoMama = ''.join(nazwiskoMama)
 
         # mail processing
-        mailMama = hashImieMail[mama].split(';')
-        mailMama = '|=|'.join(mailMama)
+        mails = hashImieMail[mama].split(';')
+
+        # removing all empty string values from split
+        for mail in mails:
+            if mail.translate(str.maketrans('','', string.whitespace)) == '':
+                mails.remove(mail)
+
+        # only taking two mails here, later i can add adding additional column autoamicly if 2 or more mails are detected for now staying with fixed 2 mail ammount
+        mailMama = mails[0] if len(mails) > 0 else ''
+        mailMama2 = mails[1] if len(mails) > 1 else ''
 
         newSheet.cell(row=row, column=1, value="Szanowna Pani")
         newSheet.cell(row=row, column=2, value=nazwiskoMama if mama!="nieznany_rodzic" else "Nie znaleziono mamy!")
+
         newSheet.cell(row=row, column=3, value= mailMama if mama!="nieznany_rodzic" else "Uzupelnij dane o imie oraz nazwisko mamy")
-        newSheet.cell(row=row, column=4, value=hashImieIlosc[mama])
+        newSheet.cell(row=row, column=4, value=mailMama2 if mama != "nieznany_rodzic" else "Uzupelnij dane o imie oraz nazwisko mamy")
+
+        newSheet.cell(row=row, column=5, value=hashImieIlosc[mama])
 
         col_all = 0
-        for col,hashImie in enumerate(hashImieRn,5):
+        for col,hashImie in enumerate(hashImieRn,6):
             newSheet.cell(row=row, column=col, value=hashImie[mama]).number_format = '#,##0.00 "zł"'
             col_all = col + 1
         newSheet.cell(row=row, column=col_all, value=hashImieALL[mama]).number_format = '#,##0.00 "zł"'
