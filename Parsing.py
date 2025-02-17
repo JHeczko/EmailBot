@@ -71,6 +71,9 @@ def edit_excel(workbook,mode,i_mama, i_mail, i_r1, i_r2, i_r3, opt_indexes):
         if mama not in hashImieMail:
             hashImieMail[mama] = mail
 
+    # descending sorting
+    hashImieALL = dict(sorted(hashImieALL.items(), key=lambda x: x[1], reverse=False))
+
     # =-=-=-=-=-=-=-=-=STYLING AND FILLING NEW WORKBOOK=-=-=-=-=-=-=-=-=
     # ============Styling============
     header_font = Font(bold=True)
@@ -91,7 +94,7 @@ def edit_excel(workbook,mode,i_mama, i_mail, i_r1, i_r2, i_r3, opt_indexes):
 
     # ============Filling data============
     row = 2
-    for mama in hashImieMail.keys():
+    for mama in hashImieALL.keys():
         nazwiskoMama = mama.split()
 
         # name processing
